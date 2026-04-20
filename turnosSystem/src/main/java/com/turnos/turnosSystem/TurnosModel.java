@@ -1,5 +1,5 @@
 package com.turnos.turnosSystem;
 
-public class TurnosController
+public class TurnosModel
 {
 }
