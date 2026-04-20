@@ -1,4 +1,4 @@
-package com.turnos.turnosSystem;
+package com.turnos.turnosSystem.model;
 
 import jakarta.persistence.*;
 import lombok.*;

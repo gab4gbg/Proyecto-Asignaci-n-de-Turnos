@@ -1,5 +1,7 @@
-package com.turnos.turnosSystem;
+package com.turnos.turnosSystem.model;
 
+import com.turnos.turnosSystem.enums.TurnosEstado;
+import com.turnos.turnosSystem.enums.TurnosPrioridad;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

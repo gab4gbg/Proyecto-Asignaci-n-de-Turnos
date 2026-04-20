@@ -1,4 +1,4 @@
-package com.turnos.turnosSystem;
+package com.turnos.turnosSystem.enums;
 
 public enum TurnosEstado
 {
