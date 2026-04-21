@@ -4,125 +4,203 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitar Turno</title>
-  <link rel="stylesheet" href="/css/styles.css">
   <style>
-    /* Opciones de prioridad */
-    .priority-grid {
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container { width: 100%; max-width: 440px; }
+
+    .header { text-align: center; margin-bottom: 1.8rem; }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe; color: #1d4ed8;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 14px; border-radius: 999px;
+      margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: 1.8rem; font-weight: 800;
+      color: #111827; letter-spacing: -0.02em;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle { font-size: 14px; color: #6b7280; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 1.8rem;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+
+    label {
+      display: block;
+      font-size: 13px; font-weight: 600;
+      color: #374151; margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: #f9fafb;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-family: inherit; font-size: 15px;
+      color: #111827; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      background: #fff;
+    }
+
+    input::placeholder { color: #9ca3af; }
+
+    .prioridad-label {
+      font-size: 13px; font-weight: 600;
+      color: #374151; margin-bottom: 8px;
+    }
+
+    .prioridad-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
-      margin-top: 6px;
     }
 
-    .priority-opt {
-      border: 1.5px solid var(--border);
-      background: var(--bg);
+    .p-btn {
+      border: 1.5px solid #e5e7eb;
+      background: #f9fafb;
       border-radius: 10px;
-      padding: 12px 8px;
+      padding: 12px 6px;
       text-align: center;
       cursor: pointer;
       transition: all 0.15s;
       font-family: inherit;
     }
 
-    .priority-opt:hover { border-color: #93c5fd; background: var(--accent-l); }
+    .p-btn:hover { border-color: #93c5fd; background: #eff6ff; }
 
-    .priority-opt.sel-none {
-      border-color: var(--accent);
-      background: var(--accent-l);
+    .p-btn.active-none       { border-color: #2563eb; background: #eff6ff; }
+    .p-btn.active-embarazo   { border-color: #d97706; background: #fffbeb; }
+    .p-btn.active-discapacidad { border-color: #7c3aed; background: #f5f3ff; }
+
+    .p-icon  { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    .p-text  { font-size: 12px; font-weight: 600; color: #6b7280; }
+    .p-btn.active-none       .p-text { color: #2563eb; }
+    .p-btn.active-embarazo   .p-text { color: #d97706; }
+    .p-btn.active-discapacidad .p-text { color: #7c3aed; }
+
+    .divider { height: 1px; background: #f3f4f6; margin: 1.4rem 0; }
+
+    .btn {
+      width: 100%; background: #2563eb; color: #fff;
+      border: none; border-radius: 9px; padding: 13px;
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
     }
 
-    .priority-opt.sel-embarazo {
-      border-color: var(--amber);
-      background: var(--amber-l);
+    .btn:hover   { background: #1d4ed8; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
     }
 
-    .priority-opt.sel-discapacidad {
-      border-color: var(--purple);
-      background: var(--purple-l);
-    }
-
-    .p-icon  { font-size: 20px; display: block; margin-bottom: 5px; }
-    .p-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
-
-    .priority-opt.sel-none       .p-label { color: var(--accent); }
-    .priority-opt.sel-embarazo   .p-label { color: var(--amber); }
-    .priority-opt.sel-discapacidad .p-label { color: var(--purple); }
-
-    /* Tarjeta de resultado */
-    .result-card {
+    .error {
       display: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-      box-shadow: var(--shadow);
-      animation: fadeUp 0.4s ease both;
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: #dc2626; margin-top: 12px;
     }
+    .error.show { display: block; }
 
-    .result-card.show { display: block; }
+    /* Resultado */
+    .result {
+      display: none;
+      background: #fff; border: 1px solid #e5e7eb;
+      border-radius: 14px; padding: 2rem; text-align: center;
+    }
+    .result.show { display: block; }
 
     .result-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 0.5rem;
+      font-size: 12px; font-weight: 600; color: #9ca3af;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
     }
 
-    .turno-num {
-      font-size: 4rem;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: -0.03em;
-      line-height: 1;
-      margin-bottom: 1.5rem;
+    .turno-numero {
+      font-size: 4.5rem; font-weight: 800;
+      color: #2563eb; letter-spacing: -0.04em;
+      line-height: 1; margin-bottom: 1.4rem;
     }
 
     .result-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.2rem; }
 
     .result-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: var(--bg);
-      border-radius: 8px;
-      font-size: 13px;
+      display: flex; justify-content: space-between;
+      padding: 10px 14px; background: #f9fafb;
+      border-radius: 8px; font-size: 13px;
     }
 
-    .result-row span:first-child { color: var(--muted); font-weight: 500; }
-    .result-row span:last-child  { color: var(--text);  font-weight: 600; }
+    .result-row .key   { color: #6b7280; font-weight: 500; }
+    .result-row .val   { color: #111827; font-weight: 600; }
 
-    .priority-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: 999px;
-      margin-bottom: 1.2rem;
+    .p-tag {
+      display: inline-block; font-size: 12px; font-weight: 600;
+      padding: 5px 14px; border-radius: 999px; margin-bottom: 1.2rem;
     }
 
-    .pill-amber  { background: var(--amber-l);  color: var(--amber); }
-    .pill-purple { background: var(--purple-l); color: var(--purple); }
+    .btn-sec {
+      width: 100%; background: transparent;
+      border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 11px;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      color: #6b7280; cursor: pointer; transition: all 0.15s; margin-top: 8px;
+    }
+    .btn-sec:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
+    .nav-link {
+      display: block; text-align: center; margin-top: 1.2rem;
+      font-size: 13px; font-weight: 500; color: #9ca3af;
+      text-decoration: none; transition: color 0.15s;
+    }
+    .nav-link:hover { color: #2563eb; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 <div class="container">
 
   <div class="header">
-    <div class="logo-dot">Sistema de Turnos</div>
+    <div class="badge">Sistema de Turnos</div>
     <h1>Solicita tu turno</h1>
     <p class="subtitle">Sin registro, sin esperas innecesarias.</p>
   </div>
 
   <!-- Formulario -->
   <div class="card" id="formCard">
-
     <div class="field">
       <label for="nombre">Nombre completo</label>
       <input type="text" id="nombre" placeholder="Ej. María García">
@@ -134,90 +212,72 @@
     </div>
 
     <div class="field">
-      <label>¿Requieres atención prioritaria?</label>
-      <div class="priority-grid">
-        <button class="priority-opt sel-none" data-value="NINGUNO" onclick="selPrioridad(this)">
+      <div class="prioridad-label">¿Requieres atención prioritaria?</div>
+      <div class="prioridad-grid">
+        <button class="p-btn active-none" data-val="NINGUNO" onclick="selP(this)">
           <span class="p-icon">👤</span>
-          <span class="p-label">Ninguna</span>
+          <span class="p-text">Ninguna</span>
         </button>
-        <button class="priority-opt" data-value="EMBARAZO" onclick="selPrioridad(this)">
+        <button class="p-btn" data-val="EMBARAZO" onclick="selP(this)">
           <span class="p-icon">🤰</span>
-          <span class="p-label">Embarazo</span>
+          <span class="p-text">Embarazo</span>
         </button>
-        <button class="priority-opt" data-value="DISCAPACIDAD" onclick="selPrioridad(this)">
+        <button class="p-btn" data-val="DISCAPACIDAD" onclick="selP(this)">
           <span class="p-icon">♿</span>
-          <span class="p-label">Discapacidad</span>
+          <span class="p-text">Discapacidad</span>
         </button>
       </div>
     </div>
 
     <div class="divider"></div>
 
-    <button class="btn-primary" id="btnGenerar" onclick="generarTurno()">
-      Generar turno
-    </button>
-
-    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn" id="btnGen" onclick="generar()">Generar turno</button>
+    <div class="error" id="errMsg"></div>
   </div>
 
   <!-- Resultado -->
-  <div class="result-card" id="resultCard">
+  <div class="result" id="resultCard">
     <div class="result-label">Tu número de turno</div>
-    <div class="turno-num" id="numeroTurno">—</div>
-
-    <div id="pillPrioridad"></div>
-
+    <div class="turno-numero" id="resNumero">—</div>
+    <div id="resPTag"></div>
     <div class="result-rows">
-      <div class="result-row">
-        <span>Nombre</span>
-        <span id="resNombre">—</span>
-      </div>
-      <div class="result-row">
-        <span>Cédula</span>
-        <span id="resCedula">—</span>
-      </div>
-      <div class="result-row">
-        <span>Estado</span>
-        <span id="resEstado">—</span>
-      </div>
+      <div class="result-row"><span class="key">Nombre</span><span class="val" id="resNombre">—</span></div>
+      <div class="result-row"><span class="key">Cédula</span><span class="val" id="resCedula">—</span></div>
+      <div class="result-row"><span class="key">Estado</span><span class="val" id="resEstado">—</span></div>
     </div>
-
-    <button class="btn-secondary" onclick="nuevoTurno()">Solicitar otro turno</button>
+    <button class="btn-sec" onclick="reiniciar()">Solicitar otro turno</button>
   </div>
 
   <a href="cola_turnos.html" class="nav-link">Ver cola de turnos →</a>
-
+  <a href="index.html" class="nav-link" style="margin-top:6px">← Volver al inicio</a>
 </div>
+
 <script>
   const API = 'http://localhost:8080/api';
   let prioridad = 'NINGUNO';
 
-  function selPrioridad(btn) {
-    document.querySelectorAll('.priority-opt').forEach(b => {
-      b.className = 'priority-opt';
-    });
-    const val = btn.dataset.value;
-    prioridad = val;
-    if (val === 'NINGUNO')      btn.classList.add('sel-none');
-    if (val === 'EMBARAZO')     btn.classList.add('sel-embarazo');
-    if (val === 'DISCAPACIDAD') btn.classList.add('sel-discapacidad');
+  function selP(btn) {
+    document.querySelectorAll('.p-btn').forEach(b => b.className = 'p-btn');
+    prioridad = btn.dataset.val;
+    if (prioridad === 'NINGUNO')      btn.classList.add('active-none');
+    if (prioridad === 'EMBARAZO')     btn.classList.add('active-embarazo');
+    if (prioridad === 'DISCAPACIDAD') btn.classList.add('active-discapacidad');
   }
 
-  async function generarTurno() {
+  async function generar() {
     const nombre = document.getElementById('nombre').value.trim();
     const cedula = document.getElementById('cedula').value.trim();
-    const btn    = document.getElementById('btnGenerar');
-    const errEl  = document.getElementById('errorMsg');
+    const btn    = document.getElementById('btnGen');
+    const err    = document.getElementById('errMsg');
 
     if (!nombre || !cedula) {
-      errEl.textContent = 'Por favor completa tu nombre y número de cédula.';
-      errEl.classList.add('show');
-      return;
+      err.textContent = 'Por favor completa tu nombre y número de cédula.';
+      err.classList.add('show'); return;
     }
 
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Generando...';
-    errEl.classList.remove('show');
+    err.classList.remove('show');
 
     try {
       const res = await fetch(`${API}/turnos`, {
@@ -226,32 +286,29 @@
         body: JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad })
       });
       if (!res.ok) throw new Error();
-      const turno = await res.json();
-      mostrarResultado(turno);
+      mostrar(await res.json());
     } catch {
-      errEl.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
-      errEl.classList.add('show');
+      err.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
+      err.classList.add('show');
     } finally {
       btn.disabled = false;
       btn.innerHTML = 'Generar turno';
     }
   }
 
-  function mostrarResultado(t) {
+  function mostrar(t) {
     document.getElementById('formCard').style.display = 'none';
-    document.getElementById('numeroTurno').textContent = t.numeroTurno;
-    document.getElementById('resNombre').textContent   = t.nombreUsuario;
-    document.getElementById('resCedula').textContent   = t.cedulaUsuario;
-    document.getElementById('resEstado').textContent   = fmtEstado(t.estado);
+    document.getElementById('resNumero').textContent = t.numeroTurno;
+    document.getElementById('resNombre').textContent = t.nombreUsuario;
+    document.getElementById('resCedula').textContent = t.cedulaUsuario;
+    document.getElementById('resEstado').textContent = fmtEstado(t.estado);
 
-    const pill = document.getElementById('pillPrioridad');
+    const tag = document.getElementById('resPTag');
     if (t.prioridad === 'EMBARAZO') {
-      pill.innerHTML = '<div class="priority-pill pill-amber">🤰 Atención prioritaria — Embarazo</div>';
+      tag.innerHTML = '<div class="p-tag" style="background:#fffbeb;color:#d97706">🤰 Atención prioritaria — Embarazo</div>';
     } else if (t.prioridad === 'DISCAPACIDAD') {
-      pill.innerHTML = '<div class="priority-pill pill-purple">♿ Atención prioritaria — Discapacidad</div>';
-    } else {
-      pill.innerHTML = '';
-    }
+      tag.innerHTML = '<div class="p-tag" style="background:#f5f3ff;color:#7c3aed">♿ Atención prioritaria — Discapacidad</div>';
+    } else { tag.innerHTML = ''; }
 
     document.getElementById('resultCard').classList.add('show');
   }
@@ -261,12 +318,12 @@
              ATENDIDO:'Atendido', CANCELADO:'Cancelado' }[e] || e;
   }
 
-  function nuevoTurno() {
+  function reiniciar() {
     document.getElementById('nombre').value = '';
     document.getElementById('cedula').value = '';
     document.getElementById('formCard').style.display = 'block';
     document.getElementById('resultCard').classList.remove('show');
-    selPrioridad(document.querySelector('[data-value="NINGUNO"]'));
+    selP(document.querySelector('[data-val="NINGUNO"]'));
   }
 </script>
 </body>

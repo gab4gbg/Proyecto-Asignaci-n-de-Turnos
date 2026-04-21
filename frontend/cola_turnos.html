@@ -4,198 +4,170 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cola de Turnos</title>
-  <link rel="stylesheet" href="/frontend/css/styles.css">
   <style>
-    /* Turno siendo atendido */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container { width: 100%; max-width: 520px; }
+
+    .header { text-align: center; margin-bottom: 1.8rem; }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe; color: #1d4ed8;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 14px; border-radius: 999px; margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: 1.8rem; font-weight: 800;
+      color: #111827; letter-spacing: -0.02em; margin-bottom: 0.3rem;
+    }
+
+    .subtitle { font-size: 14px; color: #6b7280; }
+
+    /* Turno atendido ahora */
     .atendiendo {
       display: none;
-      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-      border: 1.5px solid #93c5fd;
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.2rem;
-      animation: fadeUp 0.4s ease both;
+      background: #eff6ff; border: 1.5px solid #93c5fd;
+      border-radius: 14px; padding: 1.4rem; margin-bottom: 1rem;
     }
-
     .atendiendo.show { display: block; }
 
-    .atendiendo-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.4rem;
+    .at-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: #1d4ed8;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
     }
 
-    .live-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 1.5s ease infinite;
-    }
+    .live { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; animation: pulse 1.5s ease infinite; }
 
-    .atendiendo-num  { font-size: 2.8rem; font-weight: 800; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
-    .atendiendo-name { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .at-num  { font-size: 2.8rem; font-weight: 800; color: #1d4ed8; letter-spacing: -0.03em; line-height: 1; }
+    .at-name { font-size: 13px; color: #3b82f6; font-weight: 500; margin-top: 3px; }
 
     /* Contadores */
     .counters {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 1.2rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;
     }
 
     .counter {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem 1.2rem;
-      box-shadow: var(--shadow);
+      background: #fff; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 1rem 1.2rem;
     }
 
-    .counter-num   { font-size: 2rem; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
-    .counter-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 3px; }
+    .c-num   { font-size: 2rem; font-weight: 800; color: #111827; letter-spacing: -0.03em; line-height: 1; }
+    .c-label { font-size: 12px; color: #6b7280; margin-top: 3px; }
 
-    /* Header de sección */
-    .section-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
+    /* Lista */
+    .card {
+      background: #fff; border: 1px solid #e5e7eb;
+      border-radius: 14px; padding: 1.4rem;
     }
 
-    .section-title { font-size: 13px; font-weight: 600; color: var(--text-2); }
+    .list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .list-title { font-size: 13px; font-weight: 700; color: #374151; }
 
     .refresh-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
+      display: flex; align-items: center; gap: 5px;
+      background: #f9fafb; border: 1px solid #e5e7eb;
+      border-radius: 8px; padding: 6px 12px;
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      color: #6b7280; cursor: pointer; transition: all 0.15s;
     }
+    .refresh-btn:hover { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
 
-    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
-    .refresh-icon { transition: transform 0.4s; }
-    .refresh-btn.spin .refresh-icon { transform: rotate(360deg); }
+    .ri { transition: transform 0.4s; }
+    .spinning .ri { transform: rotate(360deg); }
 
-    /* Items de turno */
     .turno-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      box-shadow: var(--shadow);
-      transition: border-color 0.15s, transform 0.15s;
-      animation: fadeUp 0.3s ease both;
+      display: flex; align-items: center; gap: 12px;
+      border: 1px solid #f3f4f6; border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 8px;
+      transition: border-color 0.15s;
+    }
+    .turno-item:hover { border-color: #93c5fd; }
+
+    .pos   { font-size: 12px; font-weight: 700; color: #d1d5db; min-width: 18px; }
+    .tnum  { font-size: 1.3rem; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; min-width: 58px; }
+    .tinfo { flex: 1; }
+    .tname { font-size: 14px; font-weight: 600; color: #111827; }
+    .tced  { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+
+    .ptag {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
     }
 
-    .turno-item:hover { border-color: #93c5fd; transform: translateX(2px); }
-
-    .pos-num  { font-size: 12px; font-weight: 700; color: #b8b3ac; min-width: 20px; }
-    .t-num    { font-size: 1.3rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; min-width: 60px; }
-    .t-info   { flex: 1; }
-    .t-name   { font-size: 14px; font-weight: 600; color: var(--text); }
-    .t-cedula { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    .p-tag {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 999px;
-    }
-
-    .tag-amber  { background: var(--amber-l);  color: var(--amber); }
-    .tag-purple { background: var(--purple-l); color: var(--purple); }
-
-    /* Estado vacío */
     .empty {
-      display: none;
-      text-align: center;
-      padding: 3rem 1rem;
+      display: none; text-align: center; padding: 2.5rem 1rem;
     }
-
     .empty.show { display: block; }
-    .empty-icon  { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.35; }
-    .empty-title { font-size: 15px; font-weight: 600; color: var(--text-2); }
-    .empty-sub   { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .empty-icon  { font-size: 2rem; margin-bottom: 0.6rem; opacity: 0.3; }
+    .empty-title { font-size: 14px; font-weight: 600; color: #374151; }
+    .empty-sub   { font-size: 13px; color: #9ca3af; margin-top: 3px; }
 
-    /* Auto refresh */
     .auto-info {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #b8b3ac;
-      margin-top: 1.2rem;
-      animation: fadeUp 0.5s ease 0.2s both;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 12px; color: #9ca3af; margin-top: 1rem;
     }
+    .green-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; animation: pulse 2s ease infinite; }
 
-    .green-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s ease infinite;
+    .nav-link {
+      display: block; text-align: center; margin-top: 1.2rem;
+      font-size: 13px; font-weight: 500; color: #9ca3af;
+      text-decoration: none; transition: color 0.15s;
     }
+    .nav-link:hover { color: #2563eb; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
   </style>
 </head>
 <body>
 <div class="container">
 
   <div class="header">
-    <div class="logo-dot">Sistema de Turnos</div>
+    <div class="badge">Sistema de Turnos</div>
     <h1>Cola de espera</h1>
     <p class="subtitle">Actualización automática cada 15 segundos.</p>
   </div>
 
-  <!-- Turno siendo atendido -->
-  <div class="atendiendo" id="atendiendo">
-    <div class="atendiendo-label">
-      <div class="live-dot"></div>
-      Atendiendo ahora
-    </div>
-    <div class="atendiendo-num"  id="atendiendoNum">—</div>
-    <div class="atendiendo-name" id="atendiendoName">—</div>
+  <div class="atendiendo" id="atDiv">
+    <div class="at-label"><div class="live"></div>Atendiendo ahora</div>
+    <div class="at-num"  id="atNum">—</div>
+    <div class="at-name" id="atName">—</div>
   </div>
 
-  <!-- Contadores -->
   <div class="counters">
     <div class="counter">
-      <div class="counter-num"   id="cntEspera">0</div>
-      <div class="counter-label">En espera</div>
+      <div class="c-num"   id="cntE">0</div>
+      <div class="c-label">En espera</div>
     </div>
     <div class="counter">
-      <div class="counter-num"   id="cntPrioritarios">0</div>
-      <div class="counter-label">Prioritarios</div>
+      <div class="c-num"   id="cntP">0</div>
+      <div class="c-label">Prioritarios</div>
     </div>
   </div>
 
-  <!-- Lista -->
-  <div class="card" style="padding: 1.5rem;">
-    <div class="section-row">
-      <span class="section-title">Turnos en espera</span>
-      <button class="refresh-btn" id="refreshBtn" onclick="cargar()">
-        <span class="refresh-icon">↻</span> Actualizar
+  <div class="card">
+    <div class="list-header">
+      <span class="list-title">Turnos en espera</span>
+      <button class="refresh-btn" id="rBtn" onclick="cargar()">
+        <span class="ri">↻</span> Actualizar
       </button>
     </div>
-
-    <div id="listaTurnos"></div>
+    <div id="lista"></div>
     <div class="empty" id="empty">
       <div class="empty-icon">✓</div>
       <div class="empty-title">Sin turnos en espera</div>
@@ -203,71 +175,60 @@
     </div>
   </div>
 
-  <div class="auto-info">
-    <div class="green-dot"></div>
-    Actualizando automáticamente
-  </div>
-
+  <div class="auto-info"><div class="green-dot"></div>Actualizando automáticamente</div>
   <a href="generar_turno.html" class="nav-link">← Solicitar un turno</a>
+  <a href="index.html" class="nav-link" style="margin-top:6px">← Volver al inicio</a>
 
 </div>
 <script>
   const API = 'http://localhost:8080/api';
 
   async function cargar() {
-    const btn = document.getElementById('refreshBtn');
-    btn.classList.add('spin');
-
+    const btn = document.getElementById('rBtn');
+    btn.classList.add('spinning');
     try {
-      const res  = await fetch(`${API}/turnos/cola`);
-      const cola = await res.json();
+      const cola = await fetch(`${API}/turnos/cola`).then(r => r.json());
       render(cola);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setTimeout(() => btn.classList.remove('spin'), 400);
-    }
+    } catch(e) { console.error(e); }
+    finally { setTimeout(() => btn.classList.remove('spinning'), 400); }
   }
 
   function render(cola) {
-    const llamado  = cola.find(t => t.estado === 'LLAMADO');
-    const espera   = cola.filter(t => t.estado === 'EN_COLA');
-    const atDiv    = document.getElementById('atendiendo');
+    const llamado = cola.find(t => t.estado === 'LLAMADO');
+    const espera  = cola.filter(t => t.estado === 'EN_COLA');
+    const atDiv   = document.getElementById('atDiv');
 
     if (llamado) {
-      document.getElementById('atendiendoNum').textContent  = llamado.numeroTurno;
-      document.getElementById('atendiendoName').textContent = llamado.nombreUsuario;
+      document.getElementById('atNum').textContent  = llamado.numeroTurno;
+      document.getElementById('atName').textContent = llamado.nombreUsuario;
       atDiv.classList.add('show');
-    } else {
-      atDiv.classList.remove('show');
-    }
+    } else { atDiv.classList.remove('show'); }
 
-    const prioritarios = espera.filter(t => t.prioridad !== 'NINGUNO').length;
-    document.getElementById('cntEspera').textContent      = espera.length;
-    document.getElementById('cntPrioritarios').textContent = prioritarios;
+    document.getElementById('cntE').textContent = espera.length;
+    document.getElementById('cntP').textContent = espera.filter(t => t.prioridad !== 'NINGUNO').length;
 
-    const lista = document.getElementById('listaTurnos');
+    const lista = document.getElementById('lista');
     const empty = document.getElementById('empty');
     lista.innerHTML = '';
 
-    if (espera.length === 0) { empty.classList.add('show'); return; }
+    if (!espera.length) { empty.classList.add('show'); return; }
     empty.classList.remove('show');
 
     espera.forEach((t, i) => {
-      const tag = t.prioridad !== 'NINGUNO'
-        ? `<span class="p-tag ${t.prioridad === 'EMBARAZO' ? 'tag-amber' : 'tag-purple'}">
-             ${t.prioridad === 'EMBARAZO' ? '🤰 Prioritario' : '♿ Prioritario'}
-           </span>` : '';
+      let tag = '';
+      if (t.prioridad === 'EMBARAZO')
+        tag = '<span class="ptag" style="background:#fffbeb;color:#d97706">🤰 Prioritario</span>';
+      else if (t.prioridad === 'DISCAPACIDAD')
+        tag = '<span class="ptag" style="background:#f5f3ff;color:#7c3aed">♿ Prioritario</span>';
 
       const el = document.createElement('div');
       el.className = 'turno-item';
-      el.style.animationDelay = `${i * 0.04}s`;
       el.innerHTML = `
-        <div class="pos-num">${i + 1}</div>
-        <div class="t-num">${t.numeroTurno}</div>
-        <div class="t-info">
-          <div class="t-name">${t.nombreUsuario}</div>
-          <div class="t-cedula">C.C. ${t.cedulaUsuario}</div>
+        <div class="pos">${i+1}</div>
+        <div class="tnum">${t.numeroTurno}</div>
+        <div class="tinfo">
+          <div class="tname">${t.nombreUsuario}</div>
+          <div class="tced">C.C. ${t.cedulaUsuario}</div>
         </div>
         ${tag}
       `;
