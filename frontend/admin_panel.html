@@ -1,745 +1,593 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administrador</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <style>
-        body { justify-content: flex-start; padding: 2rem 1rem; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administrador</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { justify-content: flex-start; }
+    .container { max-width: 900px; }
 
-        .container { max-width: 860px; }
+    /* ── Login ── */
+    .login-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .login-overlay.hidden { display: none; }
 
-        /* Login overlay */
-        .login-overlay {
-          position: fixed;
-          inset: 0;
-          background: var(--bg);
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-        }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      width: 100%; max-width: 380px;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.4s ease both;
+    }
 
-        .login-overlay.hidden { display: none; }
+    .login-icon {
+      width: 44px; height: 44px;
+      background: var(--accent-l);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 1.2rem;
+    }
 
-        .login-card {
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
-          padding: 2.5rem 2rem;
-          width: 100%;
-          max-width: 380px;
-          animation: fadeUp 0.5s ease both;
-        }
+    .login-title { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+    .login-sub   { font-size: 13px; color: var(--muted); margin-bottom: 1.8rem; }
 
-        .login-icon {
-          width: 44px; height: 44px;
-          background: rgba(79,142,247,0.12);
-          border: 0.5px solid rgba(79,142,247,0.3);
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 20px;
-          margin-bottom: 1.2rem;
-        }
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
 
-        .login-title {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.6rem;
-          margin-bottom: 0.3rem;
-        }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
 
-        .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.8rem; }
+    .admin-avatar {
+      width: 34px; height: 34px;
+      background: var(--accent-l);
+      border: 1px solid #bfdbfe;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--accent);
+    }
 
-        /* Tabs de navegación */
-        .tabs {
-          display: flex;
-          gap: 4px;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 4px;
-          margin-bottom: 1.5rem;
-        }
+    .admin-name { font-size: 14px; font-weight: 600; }
+    .admin-role { font-size: 12px; color: var(--muted); }
 
-        .tab {
-          flex: 1;
-          background: transparent;
-          border: none;
-          border-radius: 8px;
-          padding: 9px 8px;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
-          font-weight: 400;
-          color: var(--muted);
-          cursor: pointer;
-          transition: all 0.2s;
-        }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { border-color: #fca5a5; color: var(--red); background: #fef2f2; }
 
-        .tab:hover { color: var(--text); }
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+    }
 
-        .tab.active {
-          background: var(--bg);
-          color: var(--text);
-          font-weight: 500;
-          border: 0.5px solid var(--border);
-        }
+    .tab {
+      flex: 1; background: transparent; border: none;
+      border-radius: 8px; padding: 9px;
+      font-family: inherit; font-size: 13px; font-weight: 500;
+      color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
 
-        /* Panel content */
-        .panel { display: none; }
-        .panel.active { display: block; animation: fadeUp 0.3s ease both; }
+    .tab:hover { color: var(--text); }
 
-        /* Tabla de turnos */
-        .table-wrap {
-          overflow-x: auto;
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
-        }
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
 
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeUp 0.3s ease both; }
 
-        thead { background: var(--surface); }
+    /* ── Tabla ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
 
-        th {
-          padding: 12px 16px;
-          text-align: left;
-          font-size: 11px;
-          font-weight: 500;
-          color: var(--muted);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          border-bottom: 0.5px solid var(--border);
-        }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
-        td {
-          padding: 12px 16px;
-          border-bottom: 0.5px solid var(--border);
-          color: var(--text);
-          vertical-align: middle;
-        }
+    thead { background: var(--bg); }
 
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
+    th {
+      padding: 11px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
 
-        .num-cell {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.1rem;
-          color: var(--accent);
-        }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text); vertical-align: middle;
+    }
 
-        /* Badges de estado */
-        .estado-badge {
-          display: inline-block;
-          font-size: 11px;
-          font-weight: 500;
-          padding: 3px 10px;
-          border-radius: 999px;
-        }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafaf9; }
 
-        .estado-EN_COLA   { background: rgba(79,142,247,0.12);  color: var(--accent); }
-        .estado-LLAMADO   { background: rgba(52,211,153,0.12);  color: var(--success); }
-        .estado-ATENDIDO  { background: rgba(107,114,128,0.15); color: var(--muted); }
-        .estado-CANCELADO { background: rgba(239,68,68,0.12);   color: #f87171; }
-        .estado-PENDIENTE { background: rgba(251,146,60,0.12);  color: var(--warn); }
+    .t-num-cell { font-size: 1.05rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
 
-        .prioridad-badge {
-          display: inline-block;
-          font-size: 11px;
-          padding: 2px 8px;
-          border-radius: 999px;
-        }
+    .estado-pill {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
+    }
 
-        .prioridad-EMBARAZO    { background: rgba(251,146,60,0.12);  color: var(--warn); }
-        .prioridad-DISCAPACIDAD{ background: rgba(167,139,250,0.12); color: var(--accent2); }
+    .e-EN_COLA   { background: var(--accent-l);  color: var(--accent); }
+    .e-LLAMADO   { background: var(--green-l);   color: var(--green); }
+    .e-ATENDIDO  { background: #f5f5f4; color: var(--muted); }
+    .e-CANCELADO { background: #fef2f2; color: var(--red); }
+    .e-PENDIENTE { background: var(--amber-l);   color: var(--amber); }
 
-        /* Acciones de turno */
-        .action-select {
-          background: var(--bg);
-          border: 0.5px solid var(--border);
-          border-radius: 6px;
-          padding: 5px 8px;
-          color: var(--text);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          margin-right: 4px;
-        }
+    .p-pill {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
+    }
 
-        .btn-action {
-          background: transparent;
-          border: 0.5px solid var(--border);
-          border-radius: 6px;
-          padding: 5px 12px;
-          color: var(--muted);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
+    .p-EMBARAZO    { background: var(--amber-l);  color: var(--amber); }
+    .p-DISCAPACIDAD{ background: var(--purple-l); color: var(--purple); }
 
-        .btn-action:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-action.danger:hover { border-color: #f87171; color: #f87171; }
+    .act-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 8px;
+      font-family: inherit; font-size: 12px;
+      color: var(--text); cursor: pointer;
+      margin-right: 4px;
+    }
 
-        /* Sección crear */
-        .create-section {
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1.5rem;
-          margin-bottom: 1.2rem;
-        }
+    .act-btn {
+      background: var(--accent-l);
+      border: 1px solid #bfdbfe;
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      color: var(--accent); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .act-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        .create-title {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text);
-          margin-bottom: 1rem;
-        }
+    /* ── Sección crear ── */
+    .create-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.2rem;
+    }
 
-        .create-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
+    .create-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 1rem; }
 
-        .create-row input,
-        .create-row select {
-          flex: 1;
-          min-width: 140px;
-        }
+    .create-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .create-row input, .create-row select { flex: 1; min-width: 130px; }
+    .create-row .btn-primary { width: auto; padding: 11px 20px; white-space: nowrap; font-size: 13px; }
 
-        .create-row .btn-primary {
-          width: auto;
-          padding: 12px 20px;
-          white-space: nowrap;
-        }
+    /* ── Lista items ── */
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
 
-        /* Lista de sectores / campos */
-        .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .list-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px 16px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s;
+    }
 
-        .list-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 12px 16px;
-          transition: border-color 0.2s;
-        }
+    .list-item:hover { border-color: #93c5fd; }
 
-        .list-item:hover { border-color: var(--border); }
+    .item-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-on  { background: var(--green); }
+    .dot-off { background: #d1d5db; }
 
-        .list-item-info { flex: 1; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .item-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-        .list-item-name {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text);
-        }
+    /* ── Toggle ── */
+    .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
 
-        .list-item-sub {
-          font-size: 12px;
-          color: var(--muted);
-          margin-top: 2px;
-        }
+    .tslider {
+      position: absolute; inset: 0;
+      background: #d1d5db; border-radius: 999px;
+      cursor: pointer; transition: background 0.2s;
+    }
 
-        .status-dot {
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
+    .tslider::before {
+      content: '';
+      position: absolute;
+      width: 15px; height: 15px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
 
-        .dot-active   { background: var(--success); }
-        .dot-inactive { background: var(--muted); }
+    .toggle input:checked + .tslider { background: var(--accent); }
+    .toggle input:checked + .tslider::before { transform: translateX(17px); }
 
-        /* Toggle switch */
-        .toggle {
-          position: relative;
-          width: 36px; height: 20px;
-          flex-shrink: 0;
-        }
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 200;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.25s ease;
+      max-width: 280px;
+    }
 
-        .toggle input { opacity: 0; width: 0; height: 0; }
+    .toast.show    { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: #a7f3d0; color: var(--green); background: var(--green-l); }
+    .toast.error   { border-color: #fca5a5; color: var(--red);   background: #fef2f2; }
 
-        .toggle-slider {
-          position: absolute;
-          inset: 0;
-          background: var(--border);
-          border-radius: 999px;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .toggle-slider::before {
-          content: '';
-          position: absolute;
-          width: 14px; height: 14px;
-          left: 3px; top: 3px;
-          background: white;
-          border-radius: 50%;
-          transition: transform 0.2s;
-        }
-
-        .toggle input:checked + .toggle-slider { background: var(--accent); }
-        .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
-
-        /* Header del panel con logout */
-        .panel-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1.5rem;
-        }
-
-        .admin-info {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .admin-avatar {
-          width: 32px; height: 32px;
-          background: rgba(79,142,247,0.15);
-          border: 0.5px solid rgba(79,142,247,0.3);
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--accent);
-        }
-
-        .admin-name { font-size: 13px; font-weight: 500; }
-
-        .btn-logout {
-          background: transparent;
-          border: 0.5px solid var(--border);
-          border-radius: 8px;
-          padding: 6px 12px;
-          color: var(--muted);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-logout:hover { border-color: #f87171; color: #f87171; }
-
-        /* Toast notificación */
-        .toast {
-          position: fixed;
-          bottom: 1.5rem;
-          right: 1.5rem;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 12px 18px;
-          font-size: 13px;
-          color: var(--text);
-          z-index: 200;
-          transform: translateY(80px);
-          opacity: 0;
-          transition: all 0.3s ease;
-          max-width: 280px;
-        }
-
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { border-color: rgba(52,211,153,0.4); color: var(--success); }
-        .toast.error   { border-color: rgba(239,68,68,0.4);  color: #f87171; }
-
-        .empty-row td {
-          text-align: center;
-          color: var(--muted);
-          padding: 2rem;
-          font-size: 13px;
-        }
-    </style>
+    .empty-cell { text-align: center; color: var(--muted); padding: 2.5rem; font-size: 13px; }
+  </style>
 </head>
 <body>
 
-<!-- Login overlay -->
+<!-- Login -->
 <div class="login-overlay" id="loginOverlay">
-    <div class="login-card">
-        <div class="login-icon">🔐</div>
-        <div class="login-title">Acceso admin</div>
-        <p class="login-sub">Ingresa tus credenciales para continuar</p>
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">Acceso administrador</div>
+    <p class="login-sub">Ingresa tus credenciales para continuar.</p>
 
-        <div class="field">
-            <label for="loginUser">Usuario</label>
-            <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
-        </div>
-        <div class="field">
-            <label for="loginPass">Contraseña</label>
-            <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
-        </div>
-
-        <div class="error-msg" id="loginError"></div>
-
-        <button class="btn-primary" style="margin-top:1rem" onclick="iniciarSesion()">
-            Ingresar
-        </button>
-
-        <a href="index.html" class="nav-link" style="margin-top:1rem">← Volver al inicio</a>
+    <div class="field">
+      <label for="loginUser">Usuario</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
     </div>
+    <div class="field">
+      <label for="loginPass">Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <div class="error-msg" id="loginError"></div>
+    <button class="btn-primary" style="margin-top:1rem" onclick="login()">Ingresar</button>
+    <a href="index.html" class="nav-link" style="margin-top:1rem">← Volver al inicio</a>
+  </div>
 </div>
 
-<!-- Panel principal -->
-<div class="container" id="mainPanel" style="display:none">
+<!-- Panel -->
+<div class="container" id="mainPanel" style="display:none; padding-top:2rem;">
 
-    <div class="panel-header">
-        <div class="admin-info">
-            <div class="admin-avatar" id="adminAvatar">A</div>
-            <div>
-                <div class="admin-name" id="adminName">Administrador</div>
-                <div style="font-size:11px;color:var(--muted)">Panel de gestión</div>
-            </div>
-        </div>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+  <div class="topbar">
+    <div class="admin-info">
+      <div class="admin-avatar" id="adminAvatar">A</div>
+      <div>
+        <div class="admin-name" id="adminName">Administrador</div>
+        <div class="admin-role">Panel de gestión</div>
+      </div>
     </div>
+    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+  </div>
 
-    <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab active" onclick="cambiarTab('turnos', this)">Turnos</button>
-        <button class="tab" onclick="cambiarTab('sectores', this)">Sectores</button>
-        <button class="tab" onclick="cambiarTab('campos', this)">Campos</button>
-    </div>
+  <div class="tabs">
+    <button class="tab active" onclick="tab('turnos', this)">Turnos</button>
+    <button class="tab" onclick="tab('sectores', this)">Sectores</button>
+    <button class="tab" onclick="tab('campos', this)">Campos del formulario</button>
+  </div>
 
-    <!-- ── Panel Turnos ── -->
-    <div class="panel active" id="panel-turnos">
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>Turno</th>
-                    <th>Nombre</th>
-                    <th>Cédula</th>
-                    <th>Prioridad</th>
-                    <th>Estado</th>
-                    <th>Sector</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody id="tablaTurnos">
-                <tr class="empty-row"><td colspan="7">Cargando turnos...</td></tr>
-                </tbody>
-            </table>
-        </div>
+  <!-- Turnos -->
+  <div class="panel active" id="panel-turnos">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Turno</th><th>Nombre</th><th>Cédula</th>
+            <th>Prioridad</th><th>Estado</th><th>Sector</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tblTurnos">
+          <tr><td class="empty-cell" colspan="7">Cargando...</td></tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <!-- ── Panel Sectores ── -->
-    <div class="panel" id="panel-sectores">
-        <div class="create-section">
-            <div class="create-title">Crear nuevo sector</div>
-            <div class="create-row">
-                <input type="text" id="inputSector" placeholder="Ej. Sector C, Caja, Servicio al cliente...">
-                <button class="btn-primary" onclick="crearSector()">Crear sector</button>
-            </div>
-        </div>
-        <div class="item-list" id="listaSectores"></div>
+  <!-- Sectores -->
+  <div class="panel" id="panel-sectores">
+    <div class="create-box">
+      <div class="create-title">Crear nuevo sector</div>
+      <div class="create-row">
+        <input type="text" id="inpSector" placeholder="Ej. Sector C, Caja...">
+        <button class="btn-primary" onclick="crearSector()">Crear</button>
+      </div>
     </div>
+    <div class="item-list" id="listaSectores"></div>
+  </div>
 
-    <!-- ── Panel Campos ── -->
-    <div class="panel" id="panel-campos">
-        <div class="create-section">
-            <div class="create-title">Agregar campo al formulario</div>
-            <div class="create-row">
-                <input type="text" id="inputEtiqueta" placeholder="Etiqueta (ej. Teléfono)">
-                <select id="inputTipo">
-                    <option value="texto">Texto</option>
-                    <option value="numero">Número</option>
-                    <option value="fecha">Fecha</option>
-                </select>
-                <input type="number" id="inputOrden" placeholder="Orden" min="1" style="max-width:90px">
-                <button class="btn-primary" onclick="crearCampo()">Agregar</button>
-            </div>
-        </div>
-        <div class="item-list" id="listaCampos"></div>
+  <!-- Campos -->
+  <div class="panel" id="panel-campos">
+    <div class="create-box">
+      <div class="create-title">Agregar campo al formulario</div>
+      <div class="create-row">
+        <input type="text" id="inpEtiqueta" placeholder="Etiqueta (ej. Teléfono)">
+        <select id="inpTipo">
+          <option value="texto">Texto</option>
+          <option value="numero">Número</option>
+          <option value="fecha">Fecha</option>
+        </select>
+        <input type="number" id="inpOrden" placeholder="Orden" min="1" style="max-width:90px">
+        <button class="btn-primary" onclick="crearCampo()">Agregar</button>
+      </div>
     </div>
+    <div class="item-list" id="listaCampos"></div>
+  </div>
 
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-    const API = 'http://localhost:8080/api';
-    let authHeader = '';
-    let sectores   = [];
+  const API = 'http://localhost:8080/api';
+  let auth = '';
+  let sectores = [];
 
-    // ── Auth ─────────────────────────────────────────────────────────
+  // ── Auth ──
+  function login() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    if (!u || !p) { loginErr('Completa usuario y contraseña.'); return; }
 
-    function iniciarSesion() {
-      const user = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
+    auth = 'Basic ' + btoa(`${u}:${p}`);
 
-      if (!user || !pass) {
-        mostrarLoginError('Completa usuario y contraseña.');
-        return;
-      }
+    fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
+      .then(r => { if (r.status === 401) throw new Error('Credenciales incorrectas'); return r.json(); })
+      .then(() => {
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('mainPanel').style.display = 'block';
+        document.getElementById('adminName').textContent = u;
+        document.getElementById('adminAvatar').textContent = u[0].toUpperCase();
+        cargarTodo();
+      })
+      .catch(e => loginErr(e.message));
+  }
 
-      authHeader = 'Basic ' + btoa(`${user}:${pass}`);
+  function logout() {
+    auth = '';
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('mainPanel').style.display = 'none';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
 
-      // Verificar credenciales con una llamada real al backend
-      fetch(`${API}/sectores/todos`, { headers: { 'Authorization': authHeader } })
-        .then(res => {
-          if (res.status === 401) throw new Error('Credenciales incorrectas');
-          if (!res.ok) throw new Error('Error del servidor');
-          return res.json();
-        })
-        .then(() => {
-          document.getElementById('loginOverlay').classList.add('hidden');
-          document.getElementById('mainPanel').style.display = 'block';
-          document.getElementById('adminName').textContent = user;
-          document.getElementById('adminAvatar').textContent = user.charAt(0).toUpperCase();
-          cargarTodo();
-        })
-        .catch(e => mostrarLoginError(e.message));
-    }
+  function loginErr(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg; el.classList.add('show');
+  }
 
-    function cerrarSesion() {
-      authHeader = '';
-      document.getElementById('loginOverlay').classList.remove('hidden');
-      document.getElementById('mainPanel').style.display = 'none';
-      document.getElementById('loginUser').value = '';
-      document.getElementById('loginPass').value = '';
-    }
-
-    function mostrarLoginError(msg) {
-      const el = document.getElementById('loginError');
-      el.textContent = msg;
-      el.classList.add('show');
-    }
-
-    // Enter en los campos de login
+  document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginPass').addEventListener('keydown', e => {
-      if (e.key === 'Enter') iniciarSesion();
+      if (e.key === 'Enter') login();
+    });
+  });
+
+  // ── Tabs ──
+  function tab(name, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${name}`).classList.add('active');
+  }
+
+  function cargarTodo() { cargarTurnos(); cargarSectores(); cargarCampos(); }
+
+  // ── Turnos ──
+  async function cargarTurnos() {
+    const r = await fetch(`${API}/turnos/cola`, { headers: { Authorization: auth } });
+    const data = await r.json();
+    const tbody = document.getElementById('tblTurnos');
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td class="empty-cell" colspan="7">No hay turnos activos</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(t => `
+      <tr>
+        <td class="t-num-cell">${t.numeroTurno}</td>
+        <td style="font-weight:500">${t.nombreUsuario}</td>
+        <td style="color:var(--muted)">${t.cedulaUsuario}</td>
+        <td>${t.prioridad !== 'NINGUNO'
+          ? `<span class="p-pill p-${t.prioridad}">${t.prioridad === 'EMBARAZO' ? '🤰' : '♿'} ${t.prioridad}</span>`
+          : '<span style="color:#d1d5db">—</span>'}</td>
+        <td><span class="estado-pill e-${t.estado}">${fmtEstado(t.estado)}</span></td>
+        <td style="color:var(--muted);font-size:12px">${t.sector?.nombre || '—'}</td>
+        <td>
+          <select class="act-select" id="sec-${t.id}">
+            <option value="">Sector...</option>
+            ${sectores.map(s => `<option value="${s.id}" ${t.sector?.id === s.id ? 'selected' : ''}>${s.nombre}</option>`).join('')}
+          </select>
+          <button class="act-btn" onclick="asignarSector(${t.id})">Asignar</button>
+          &nbsp;
+          <select class="act-select" id="est-${t.id}">
+            ${['EN_COLA','LLAMADO','ATENDIDO','CANCELADO'].map(e =>
+              `<option value="${e}" ${t.estado === e ? 'selected':''}>${fmtEstado(e)}</option>`
+            ).join('')}
+          </select>
+          <button class="act-btn" onclick="cambiarEstado(${t.id})">Cambiar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function asignarSector(id) {
+    const sid = document.getElementById(`sec-${id}`).value;
+    if (!sid) { toast('Selecciona un sector primero', 'error'); return; }
+    await fetch(`${API}/turnos/${id}/sector`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ sectorId: +sid })
+    });
+    toast('Sector asignado', 'success'); cargarTurnos();
+  }
+
+  async function cambiarEstado(id) {
+    const nuevoEstado = document.getElementById(`est-${id}`).value;
+    await fetch(`${API}/turnos/${id}/estado`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ nuevoEstado })
+    });
+    toast('Estado actualizado', 'success'); cargarTurnos();
+  }
+
+  // ── Sectores ──
+  async function cargarSectores() {
+    const r = await fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } });
+    sectores = await r.json();
+    const lista = document.getElementById('listaSectores');
+
+    if (!sectores.length) {
+      lista.innerHTML = '<p style="font-size:13px;color:var(--muted);padding:.5rem 0">No hay sectores creados aún.</p>';
+      return;
+    }
+
+    lista.innerHTML = sectores.map(s => `
+      <div class="list-item">
+        <div class="item-dot ${s.activo ? 'dot-on' : 'dot-off'}"></div>
+        <div class="item-info">
+          <div class="item-name">${s.nombre}</div>
+          <div class="item-sub">${s.activo ? 'Activo' : 'Inactivo'}</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" ${s.activo ? 'checked' : ''} onchange="toggleSector(${s.id}, this.checked)">
+          <span class="tslider"></span>
+        </label>
+      </div>
+    `).join('');
+  }
+
+  async function crearSector() {
+    const nombre = document.getElementById('inpSector').value.trim();
+    if (!nombre) { toast('Escribe un nombre', 'error'); return; }
+
+    const r = await fetch(`${API}/sectores`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ nombre })
     });
 
-    // ── Tabs ─────────────────────────────────────────────────────────
+    if (!r.ok) { toast('Ya existe un sector con ese nombre', 'error'); return; }
+    document.getElementById('inpSector').value = '';
+    toast(`Sector "${nombre}" creado`, 'success'); cargarSectores();
+  }
 
-    function cambiarTab(tab, btn) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`panel-${tab}`).classList.add('active');
+  async function toggleSector(id, activo) {
+    await fetch(`${API}/sectores/${id}/estado`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ activo })
+    });
+    toast(`Sector ${activo ? 'activado' : 'desactivado'}`, 'success'); cargarSectores();
+  }
+
+  // ── Campos ──
+  async function cargarCampos() {
+    const r = await fetch(`${API}/campos/todos`, { headers: { Authorization: auth } });
+    const campos = await r.json();
+    const lista = document.getElementById('listaCampos');
+
+    if (!campos.length) {
+      lista.innerHTML = '<p style="font-size:13px;color:var(--muted);padding:.5rem 0">No hay campos configurados aún.</p>';
+      return;
     }
 
-    // ── Carga general ────────────────────────────────────────────────
-
-    function cargarTodo() {
-      cargarTurnos();
-      cargarSectores();
-      cargarCampos();
-    }
-
-    // ── Turnos ───────────────────────────────────────────────────────
-
-    async function cargarTurnos() {
-      const res    = await fetch(`${API}/turnos/cola`, { headers: { 'Authorization': authHeader } });
-      const turnos = await res.json();
-      const tbody  = document.getElementById('tablaTurnos');
-
-      if (turnos.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay turnos activos</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = turnos.map(t => `
-        <tr>
-          <td class="num-cell">${t.numeroTurno}</td>
-          <td>${t.nombreUsuario}</td>
-          <td style="color:var(--muted)">${t.cedulaUsuario}</td>
-          <td>${t.prioridad !== 'NINGUNO'
-            ? `<span class="prioridad-badge prioridad-${t.prioridad}">${t.prioridad === 'EMBARAZO' ? '🤰' : '♿'} ${t.prioridad}</span>`
-            : '<span style="color:var(--muted);font-size:12px">—</span>'
-          }</td>
-          <td><span class="estado-badge estado-${t.estado}">${formatEstado(t.estado)}</span></td>
-          <td style="color:var(--muted);font-size:12px">${t.sector ? t.sector.nombre : '—'}</td>
-          <td>
-            <select class="action-select" id="sector-${t.id}">
-              <option value="">Asignar sector...</option>
-              ${sectores.map(s => `<option value="${s.id}" ${t.sector?.id === s.id ? 'selected' : ''}>${s.nombre}</option>`).join('')}
-            </select>
-            <button class="btn-action" onclick="asignarSector(${t.id})">Asignar</button>
-            <select class="action-select" id="estado-${t.id}" style="margin-left:4px">
-              ${['EN_COLA','LLAMADO','ATENDIDO','CANCELADO'].map(e =>
-                `<option value="${e}" ${t.estado === e ? 'selected' : ''}>${formatEstado(e)}</option>`
-              ).join('')}
-            </select>
-            <button class="btn-action" onclick="cambiarEstado(${t.id})">Cambiar</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    async function asignarSector(turnoId) {
-      const sectorId = document.getElementById(`sector-${turnoId}`).value;
-      if (!sectorId) { toast('Selecciona un sector primero', 'error'); return; }
-
-      await fetch(`${API}/turnos/${turnoId}/sector`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ sectorId: parseInt(sectorId) })
-      });
-
-      toast('Sector asignado correctamente', 'success');
-      cargarTurnos();
-    }
-
-    async function cambiarEstado(turnoId) {
-      const nuevoEstado = document.getElementById(`estado-${turnoId}`).value;
-
-      await fetch(`${API}/turnos/${turnoId}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ nuevoEstado })
-      });
-
-      toast('Estado actualizado', 'success');
-      cargarTurnos();
-    }
-
-    // ── Sectores ─────────────────────────────────────────────────────
-
-    async function cargarSectores() {
-      const res = await fetch(`${API}/sectores/todos`, { headers: { 'Authorization': authHeader } });
-      sectores  = await res.json();
-      const lista = document.getElementById('listaSectores');
-
-      if (sectores.length === 0) {
-        lista.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0">No hay sectores creados aún.</p>';
-        return;
-      }
-
-      lista.innerHTML = sectores.map(s => `
-        <div class="list-item">
-          <div class="status-dot ${s.activo ? 'dot-active' : 'dot-inactive'}"></div>
-          <div class="list-item-info">
-            <div class="list-item-name">${s.nombre}</div>
-            <div class="list-item-sub">${s.activo ? 'Activo' : 'Inactivo'}</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" ${s.activo ? 'checked' : ''}
-              onchange="toggleSector(${s.id}, this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
+    lista.innerHTML = campos.map(c => `
+      <div class="list-item">
+        <div class="item-dot ${c.activo ? 'dot-on' : 'dot-off'}"></div>
+        <div class="item-info">
+          <div class="item-name">${c.etiqueta}</div>
+          <div class="item-sub">Tipo: ${c.tipo} · Orden: ${c.orden} · ${c.requerido ? 'Requerido' : 'Opcional'}</div>
         </div>
-      `).join('');
-    }
+        <label class="toggle">
+          <input type="checkbox" ${c.activo ? 'checked' : ''} onchange="toggleCampo(${c.id}, this.checked)">
+          <span class="tslider"></span>
+        </label>
+      </div>
+    `).join('');
+  }
 
-    async function crearSector() {
-      const nombre = document.getElementById('inputSector').value.trim();
-      if (!nombre) { toast('Escribe un nombre para el sector', 'error'); return; }
+  async function crearCampo() {
+    const etiqueta = document.getElementById('inpEtiqueta').value.trim();
+    const tipo     = document.getElementById('inpTipo').value;
+    const orden    = parseInt(document.getElementById('inpOrden').value) || 1;
+    if (!etiqueta) { toast('Escribe una etiqueta', 'error'); return; }
 
-      const res = await fetch(`${API}/sectores`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ nombre })
-      });
+    await fetch(`${API}/campos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ etiqueta, tipo, requerido: true, orden })
+    });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast(data.message || 'Ya existe un sector con ese nombre', 'error');
-        return;
-      }
+    document.getElementById('inpEtiqueta').value = '';
+    document.getElementById('inpOrden').value    = '';
+    toast(`Campo "${etiqueta}" agregado`, 'success'); cargarCampos();
+  }
 
-      document.getElementById('inputSector').value = '';
-      toast(`Sector "${nombre}" creado`, 'success');
-      cargarSectores();
-    }
+  async function toggleCampo(id, activo) {
+    await fetch(`${API}/campos/${id}/estado`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: auth },
+      body: JSON.stringify({ activo })
+    });
+    toast(`Campo ${activo ? 'activado' : 'desactivado'}`, 'success'); cargarCampos();
+  }
 
-    async function toggleSector(id, activo) {
-      await fetch(`${API}/sectores/${id}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ activo })
-      });
+  // ── Helpers ──
+  function fmtEstado(e) {
+    return { EN_COLA:'En cola', LLAMADO:'Atendiendo', ATENDIDO:'Atendido',
+             CANCELADO:'Cancelado', PENDIENTE:'Pendiente' }[e] || e;
+  }
 
-      toast(`Sector ${activo ? 'activado' : 'desactivado'}`, 'success');
-      cargarSectores();
-    }
-
-    // ── Campos de formulario ─────────────────────────────────────────
-
-    async function cargarCampos() {
-      const res    = await fetch(`${API}/campos/todos`, { headers: { 'Authorization': authHeader } });
-      const campos = await res.json();
-      const lista  = document.getElementById('listaCampos');
-
-      if (campos.length === 0) {
-        lista.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0">No hay campos configurados aún.</p>';
-        return;
-      }
-
-      lista.innerHTML = campos.map(c => `
-        <div class="list-item">
-          <div class="status-dot ${c.activo ? 'dot-active' : 'dot-inactive'}"></div>
-          <div class="list-item-info">
-            <div class="list-item-name">${c.etiqueta}</div>
-            <div class="list-item-sub">
-              Tipo: ${c.tipo} · Orden: ${c.orden} · ${c.requerido ? 'Requerido' : 'Opcional'}
-            </div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" ${c.activo ? 'checked' : ''}
-              onchange="toggleCampo(${c.id}, this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      `).join('');
-    }
-
-    async function crearCampo() {
-      const etiqueta = document.getElementById('inputEtiqueta').value.trim();
-      const tipo     = document.getElementById('inputTipo').value;
-      const orden    = parseInt(document.getElementById('inputOrden').value) || 1;
-
-      if (!etiqueta) { toast('Escribe una etiqueta para el campo', 'error'); return; }
-
-      await fetch(`${API}/campos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ etiqueta, tipo, requerido: true, orden })
-      });
-
-      document.getElementById('inputEtiqueta').value = '';
-      document.getElementById('inputOrden').value    = '';
-      toast(`Campo "${etiqueta}" agregado`, 'success');
-      cargarCampos();
-    }
-
-    async function toggleCampo(id, activo) {
-      await fetch(`${API}/campos/${id}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ activo })
-      });
-
-      toast(`Campo ${activo ? 'activado' : 'desactivado'}`, 'success');
-      cargarCampos();
-    }
-
-    // ── Utilidades ───────────────────────────────────────────────────
-
-    function formatEstado(e) {
-      return { EN_COLA:'En cola', LLAMADO:'Atendiendo', ATENDIDO:'Atendido',
-               CANCELADO:'Cancelado', PENDIENTE:'Pendiente' }[e] || e;
-    }
-
-    let toastTimer;
-    function toast(msg, tipo = 'success') {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.className   = `toast ${tipo} show`;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-    }
+  let toastT;
+  function toast(msg, tipo = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${tipo} show`;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => el.classList.remove('show'), 3000);
+  }
 </script>
 </body>
 </html>

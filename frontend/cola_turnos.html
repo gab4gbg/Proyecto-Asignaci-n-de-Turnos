@@ -1,377 +1,282 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cola de Turnos</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .cola-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1.5rem;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cola de Turnos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Turno siendo atendido */
+    .atendiendo {
+      display: none;
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1.5px solid #93c5fd;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+      animation: fadeUp 0.4s ease both;
+    }
 
-        .cola-title {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.6rem;
-          font-weight: 400;
-        }
+    .atendiendo.show { display: block; }
 
-        .refresh-btn {
-          background: transparent;
-          border: 0.5px solid var(--border);
-          border-radius: 8px;
-          padding: 8px 14px;
-          color: var(--muted);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
+    .atendiendo-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
 
-        .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s ease infinite;
+    }
 
-        .refresh-icon { font-size: 14px; transition: transform 0.4s; }
-        .refresh-btn.spinning .refresh-icon { transform: rotate(360deg); }
+    .atendiendo-num  { font-size: 2.8rem; font-weight: 800; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+    .atendiendo-name { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 500; }
 
-        /* Turno siendo atendido ahora */
-        .turno-actual {
-          background: rgba(79,142,247,0.08);
-          border: 0.5px solid rgba(79,142,247,0.3);
-          border-radius: var(--radius);
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-          display: none;
-          animation: fadeUp 0.5s ease both;
-        }
+    /* Contadores */
+    .counters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.2rem;
+    }
 
-        .turno-actual.show { display: block; }
+    .counter {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      box-shadow: var(--shadow);
+    }
 
-        .turno-actual-label {
-          font-size: 11px;
-          font-weight: 500;
-          color: var(--accent);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          margin-bottom: 0.5rem;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
+    .counter-num   { font-size: 2rem; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+    .counter-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 3px; }
 
-        .live-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
-          background: var(--accent);
-          animation: pulse 1.5s ease infinite;
-        }
+    /* Header de sección */
+    .section-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
 
-        .turno-actual-numero {
-          font-family: 'DM Serif Display', serif;
-          font-size: 2.8rem;
-          color: var(--accent);
-          line-height: 1;
-        }
+    .section-title { font-size: 13px; font-weight: 600; color: var(--text-2); }
 
-        .turno-actual-nombre {
-          font-size: 14px;
-          color: var(--muted);
-          margin-top: 4px;
-        }
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
 
-        /* Lista de espera */
-        .seccion-label {
-          font-size: 11px;
-          font-weight: 500;
-          color: var(--muted);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          margin-bottom: 10px;
-        }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
+    .refresh-icon { transition: transform 0.4s; }
+    .refresh-btn.spin .refresh-icon { transform: rotate(360deg); }
 
-        .turno-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 14px 16px;
-          margin-bottom: 8px;
-          animation: fadeUp 0.4s ease both;
-          transition: border-color 0.2s;
-        }
+    /* Items de turno */
+    .turno-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s, transform 0.15s;
+      animation: fadeUp 0.3s ease both;
+    }
 
-        .turno-item:hover { border-color: var(--accent); }
+    .turno-item:hover { border-color: #93c5fd; transform: translateX(2px); }
 
-        .turno-pos {
-          font-size: 12px;
-          font-weight: 500;
-          color: var(--muted);
-          min-width: 24px;
-          text-align: center;
-        }
+    .pos-num  { font-size: 12px; font-weight: 700; color: #b8b3ac; min-width: 20px; }
+    .t-num    { font-size: 1.3rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; min-width: 60px; }
+    .t-info   { flex: 1; }
+    .t-name   { font-size: 14px; font-weight: 600; color: var(--text); }
+    .t-cedula { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-        .turno-num {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.4rem;
-          color: var(--text);
-          min-width: 64px;
-        }
+    .p-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
 
-        .turno-info { flex: 1; }
+    .tag-amber  { background: var(--amber-l);  color: var(--amber); }
+    .tag-purple { background: var(--purple-l); color: var(--purple); }
 
-        .turno-nombre {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text);
-        }
+    /* Estado vacío */
+    .empty {
+      display: none;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
 
-        .turno-cedula {
-          font-size: 12px;
-          color: var(--muted);
-          margin-top: 2px;
-        }
+    .empty.show { display: block; }
+    .empty-icon  { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.35; }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--text-2); }
+    .empty-sub   { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-        .turno-badge {
-          font-size: 11px;
-          font-weight: 500;
-          padding: 3px 10px;
-          border-radius: 999px;
-        }
+    /* Auto refresh */
+    .auto-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #b8b3ac;
+      margin-top: 1.2rem;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
 
-        .badge-warn   { background: rgba(251,146,60,0.15);  color: var(--warn); }
-        .badge-purple { background: rgba(167,139,250,0.15); color: var(--accent2); }
-
-        /* Estado vacío */
-        .empty-state {
-          text-align: center;
-          padding: 3rem 1rem;
-          display: none;
-        }
-
-        .empty-state.show { display: block; }
-
-        .empty-icon {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
-          opacity: 0.4;
-        }
-
-        .empty-title {
-          font-size: 15px;
-          font-weight: 500;
-          color: var(--text);
-          margin-bottom: 4px;
-        }
-
-        .empty-sub {
-          font-size: 13px;
-          color: var(--muted);
-        }
-
-        /* Contador */
-        .counter-row {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 1.5rem;
-        }
-
-        .counter-chip {
-          flex: 1;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 12px;
-          text-align: center;
-        }
-
-        .counter-num {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.8rem;
-          color: var(--text);
-          line-height: 1;
-        }
-
-        .counter-label {
-          font-size: 11px;
-          color: var(--muted);
-          margin-top: 4px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        /* Auto-refresh indicator */
-        .auto-refresh {
-          font-size: 12px;
-          color: var(--muted);
-          text-align: center;
-          margin-top: 1.2rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-        }
-
-        .auto-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: var(--success);
-          animation: pulse 2s ease infinite;
-        }
-    </style>
+    .green-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease infinite;
+    }
+  </style>
 </head>
 <body>
-
 <div class="container">
 
-    <div class="header">
-        <div class="logo-dot">Sistema de Turnos</div>
-        <h1>Cola de espera</h1>
-        <p class="subtitle">Actualización automática cada 15 segundos</p>
+  <div class="header">
+    <div class="logo-dot">Sistema de Turnos</div>
+    <h1>Cola de espera</h1>
+    <p class="subtitle">Actualización automática cada 15 segundos.</p>
+  </div>
+
+  <!-- Turno siendo atendido -->
+  <div class="atendiendo" id="atendiendo">
+    <div class="atendiendo-label">
+      <div class="live-dot"></div>
+      Atendiendo ahora
+    </div>
+    <div class="atendiendo-num"  id="atendiendoNum">—</div>
+    <div class="atendiendo-name" id="atendiendoName">—</div>
+  </div>
+
+  <!-- Contadores -->
+  <div class="counters">
+    <div class="counter">
+      <div class="counter-num"   id="cntEspera">0</div>
+      <div class="counter-label">En espera</div>
+    </div>
+    <div class="counter">
+      <div class="counter-num"   id="cntPrioritarios">0</div>
+      <div class="counter-label">Prioritarios</div>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="card" style="padding: 1.5rem;">
+    <div class="section-row">
+      <span class="section-title">Turnos en espera</span>
+      <button class="refresh-btn" id="refreshBtn" onclick="cargar()">
+        <span class="refresh-icon">↻</span> Actualizar
+      </button>
     </div>
 
-    <div class="card">
-
-        <div class="cola-header">
-            <span class="cola-title">Turnos activos</span>
-            <button class="refresh-btn" id="refreshBtn" onclick="cargarCola()">
-                <span class="refresh-icon">↻</span>
-                Actualizar
-            </button>
-        </div>
-
-        <!-- Turno siendo atendido ahora -->
-        <div class="turno-actual" id="turnoActual">
-            <div class="turno-actual-label">
-                <div class="live-dot"></div>
-                Atendiendo ahora
-            </div>
-            <div class="turno-actual-numero" id="actualNumero">—</div>
-            <div class="turno-actual-nombre" id="actualNombre">—</div>
-        </div>
-
-        <!-- Contadores -->
-        <div class="counter-row">
-            <div class="counter-chip">
-                <div class="counter-num" id="countEspera">0</div>
-                <div class="counter-label">En espera</div>
-            </div>
-            <div class="counter-chip">
-                <div class="counter-num" id="countPrioritarios">0</div>
-                <div class="counter-label">Prioritarios</div>
-            </div>
-        </div>
-
-        <!-- Lista en espera -->
-        <div class="seccion-label">En espera</div>
-        <div id="listaTurnos"></div>
-
-        <!-- Estado vacío -->
-        <div class="empty-state" id="emptyState">
-            <div class="empty-icon">✓</div>
-            <div class="empty-title">No hay turnos en espera</div>
-            <div class="empty-sub">La cola está vacía por el momento</div>
-        </div>
-
+    <div id="listaTurnos"></div>
+    <div class="empty" id="empty">
+      <div class="empty-icon">✓</div>
+      <div class="empty-title">Sin turnos en espera</div>
+      <div class="empty-sub">La cola está vacía por el momento</div>
     </div>
+  </div>
 
-    <div class="auto-refresh">
-        <div class="auto-dot"></div>
-        Actualizando automáticamente
-    </div>
+  <div class="auto-info">
+    <div class="green-dot"></div>
+    Actualizando automáticamente
+  </div>
 
-    <a href="generar_turno.html" class="nav-link">← Solicitar un turno</a>
+  <a href="generar_turno.html" class="nav-link">← Solicitar un turno</a>
 
 </div>
-
 <script>
-    const API = 'http://localhost:8080/api';
+  const API = 'http://localhost:8080/api';
 
-    async function cargarCola() {
-      const btn = document.getElementById('refreshBtn');
-      btn.classList.add('spinning');
+  async function cargar() {
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('spin');
 
-      try {
-        const res  = await fetch(`${API}/turnos/cola`);
-        const cola = await res.json();
-        renderCola(cola);
-      } catch (e) {
-        console.error('Error al cargar cola:', e);
-      } finally {
-        setTimeout(() => btn.classList.remove('spinning'), 400);
-      }
+    try {
+      const res  = await fetch(`${API}/turnos/cola`);
+      const cola = await res.json();
+      render(cola);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTimeout(() => btn.classList.remove('spin'), 400);
+    }
+  }
+
+  function render(cola) {
+    const llamado  = cola.find(t => t.estado === 'LLAMADO');
+    const espera   = cola.filter(t => t.estado === 'EN_COLA');
+    const atDiv    = document.getElementById('atendiendo');
+
+    if (llamado) {
+      document.getElementById('atendiendoNum').textContent  = llamado.numeroTurno;
+      document.getElementById('atendiendoName').textContent = llamado.nombreUsuario;
+      atDiv.classList.add('show');
+    } else {
+      atDiv.classList.remove('show');
     }
 
-    function renderCola(cola) {
-      const lista        = document.getElementById('listaTurnos');
-      const emptyState   = document.getElementById('emptyState');
-      const turnoActual  = document.getElementById('turnoActual');
+    const prioritarios = espera.filter(t => t.prioridad !== 'NINGUNO').length;
+    document.getElementById('cntEspera').textContent      = espera.length;
+    document.getElementById('cntPrioritarios').textContent = prioritarios;
 
-      // Separar el turno siendo atendido de los que están en espera
-      const llamado  = cola.find(t => t.estado === 'LLAMADO');
-      const enEspera = cola.filter(t => t.estado === 'EN_COLA');
+    const lista = document.getElementById('listaTurnos');
+    const empty = document.getElementById('empty');
+    lista.innerHTML = '';
 
-      // Turno siendo atendido ahora
-      if (llamado) {
-        document.getElementById('actualNumero').textContent = llamado.numeroTurno;
-        document.getElementById('actualNombre').textContent = llamado.nombreUsuario;
-        turnoActual.classList.add('show');
-      } else {
-        turnoActual.classList.remove('show');
-      }
+    if (espera.length === 0) { empty.classList.add('show'); return; }
+    empty.classList.remove('show');
 
-      // Contadores
-      const prioritarios = enEspera.filter(t => t.prioridad !== 'NINGUNO').length;
-      document.getElementById('countEspera').textContent      = enEspera.length;
-      document.getElementById('countPrioritarios').textContent = prioritarios;
+    espera.forEach((t, i) => {
+      const tag = t.prioridad !== 'NINGUNO'
+        ? `<span class="p-tag ${t.prioridad === 'EMBARAZO' ? 'tag-amber' : 'tag-purple'}">
+             ${t.prioridad === 'EMBARAZO' ? '🤰 Prioritario' : '♿ Prioritario'}
+           </span>` : '';
 
-      // Lista en espera
-      lista.innerHTML = '';
+      const el = document.createElement('div');
+      el.className = 'turno-item';
+      el.style.animationDelay = `${i * 0.04}s`;
+      el.innerHTML = `
+        <div class="pos-num">${i + 1}</div>
+        <div class="t-num">${t.numeroTurno}</div>
+        <div class="t-info">
+          <div class="t-name">${t.nombreUsuario}</div>
+          <div class="t-cedula">C.C. ${t.cedulaUsuario}</div>
+        </div>
+        ${tag}
+      `;
+      lista.appendChild(el);
+    });
+  }
 
-      if (enEspera.length === 0) {
-        emptyState.classList.add('show');
-        return;
-      }
-
-      emptyState.classList.remove('show');
-
-      enEspera.forEach((turno, i) => {
-        const item = document.createElement('div');
-        item.className = 'turno-item';
-        item.style.animationDelay = `${i * 0.05}s`;
-
-        const badge = turno.prioridad !== 'NINGUNO'
-          ? `<span class="turno-badge ${turno.prioridad === 'EMBARAZO' ? 'badge-warn' : 'badge-purple'}">
-               ${turno.prioridad === 'EMBARAZO' ? '🤰 Prioritario' : '♿ Prioritario'}
-             </span>`
-          : '';
-
-        item.innerHTML = `
-          <div class="turno-pos">${i + 1}</div>
-          <div class="turno-num">${turno.numeroTurno}</div>
-          <div class="turno-info">
-            <div class="turno-nombre">${turno.nombreUsuario}</div>
-            <div class="turno-cedula">C.C. ${turno.cedulaUsuario}</div>
-          </div>
-          ${badge}
-        `;
-
-        lista.appendChild(item);
-      });
-    }
-
-    // Carga inicial
-    cargarCola();
-
-    // Auto-refresh cada 15 segundos
-    setInterval(cargarCola, 15000);
+  cargar();
+  setInterval(cargar, 15000);
 </script>
 </body>
 </html>

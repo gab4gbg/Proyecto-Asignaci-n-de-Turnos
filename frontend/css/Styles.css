@@ -1,117 +1,105 @@
-/* ─── Reset ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ─── Variables ──────────────────────────────────────────────────── */
 :root {
-  --bg:      #0f1117;
-  --surface: #181c27;
-  --border:  #2a2f3f;
-  --accent:  #4f8ef7;
-  --accent2: #a78bfa;
-  --success: #34d399;
-  --warn:    #fb923c;
-  --text:    #e8eaf0;
-  --muted:   #6b7280;
-  --radius:  14px;
+  --bg:       #f7f5f2;
+  --surface:  #ffffff;
+  --border:   #e8e3db;
+  --accent:   #2563eb;
+  --accent-l: #eff6ff;
+  --purple:   #7c3aed;
+  --purple-l: #f5f3ff;
+  --amber:    #d97706;
+  --amber-l:  #fffbeb;
+  --green:    #059669;
+  --green-l:  #ecfdf5;
+  --red:      #dc2626;
+  --text:     #1c1917;
+  --text-2:   #44403c;
+  --muted:    #78716c;
+  --radius:   14px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.07);
 }
 
-/* ─── Base ───────────────────────────────────────────────────────── */
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem 4rem;
 }
 
-/* Fondo punteado sutil */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, #2a2f3f 1px, transparent 1px);
-  background-size: 32px 32px;
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ─── Layout ─────────────────────────────────────────────────────── */
 .container {
-  position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
 }
 
-/* ─── Header compartido ──────────────────────────────────────────── */
+/* ── Header ── */
 .header {
   text-align: center;
   margin-bottom: 2.5rem;
-  animation: fadeDown 0.6s ease both;
+  animation: fadeDown 0.5s ease both;
 }
 
 .logo-dot {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(79,142,247,0.1);
-  border: 0.5px solid rgba(79,142,247,0.3);
+  gap: 7px;
+  background: var(--accent-l);
+  border: 1px solid #bfdbfe;
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 5px 14px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   margin-bottom: 1.2rem;
 }
 
 .logo-dot::before {
   content: '';
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--accent);
   animation: pulse 2s ease infinite;
 }
 
 h1 {
-  font-family: 'DM Serif Display', serif;
-  font-size: 2.2rem;
-  font-weight: 400;
+  font-size: 2rem;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   margin-top: 0.5rem;
   font-size: 14px;
   color: var(--muted);
-  font-weight: 300;
+  line-height: 1.6;
 }
 
-/* ─── Card ───────────────────────────────────────────────────────── */
+/* ── Card ── */
 .card {
   background: var(--surface);
-  border: 0.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 2rem;
-  animation: fadeUp 0.6s ease 0.1s both;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.5s ease 0.05s both;
 }
 
-/* ─── Formulario ─────────────────────────────────────────────────── */
-.field { margin-bottom: 1.4rem; }
+/* ── Formulario ── */
+.field { margin-bottom: 1.25rem; }
 
 label {
   display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 6px;
 }
 
 input[type="text"],
@@ -120,124 +108,120 @@ input[type="password"],
 select {
   width: 100%;
   background: var(--bg);
-  border: 0.5px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: 10px;
-  padding: 12px 16px;
-  font-family: 'DM Sans', sans-serif;
+  padding: 11px 14px;
+  font-family: inherit;
   font-size: 15px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   appearance: none;
 }
 
 input:focus, select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  background: #fff;
 }
 
-input::placeholder { color: var(--muted); }
-select option { background: var(--surface); }
+input::placeholder { color: #b8b3ac; }
+select option { background: #fff; }
 
-/* ─── Botones ────────────────────────────────────────────────────── */
+/* ── Botones ── */
 .btn-primary {
   width: 100%;
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 10px;
-  padding: 14px;
-  font-family: 'DM Sans', sans-serif;
+  padding: 13px;
+  font-family: inherit;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-  letter-spacing: 0.02em;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: -0.01em;
 }
 
-.btn-primary:hover   { opacity: 0.88; }
-.btn-primary:active  { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary:hover  { background: #1d4ed8; }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-secondary {
   width: 100%;
   background: transparent;
   color: var(--muted);
-  border: 0.5px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: 10px;
-  padding: 12px;
-  font-family: 'DM Sans', sans-serif;
+  padding: 11px;
+  font-family: inherit;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   margin-top: 10px;
 }
 
-.btn-secondary:hover { border-color: var(--accent); color: var(--text); }
-
-/* ─── Divider ────────────────────────────────────────────────────── */
-.divider {
-  height: 0.5px;
-  background: var(--border);
-  margin: 1.6rem 0;
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-l);
 }
 
-/* ─── Mensajes ───────────────────────────────────────────────────── */
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+/* ── Error ── */
 .error-msg {
   display: none;
-  background: rgba(239,68,68,0.1);
-  border: 0.5px solid rgba(239,68,68,0.3);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 13px;
-  color: #f87171;
+  color: var(--red);
   margin-top: 1rem;
 }
-
 .error-msg.show { display: block; }
 
-/* ─── Nav link ───────────────────────────────────────────────────── */
+/* ── Nav link ── */
 .nav-link {
   display: block;
   text-align: center;
   margin-top: 1.5rem;
   font-size: 13px;
+  font-weight: 500;
   color: var(--muted);
   text-decoration: none;
-  transition: color 0.2s;
-  animation: fadeUp 0.6s ease 0.2s both;
+  transition: color 0.15s;
+  animation: fadeUp 0.5s ease 0.15s both;
 }
-
 .nav-link:hover { color: var(--accent); }
 
-/* ─── Spinner ────────────────────────────────────────────────────── */
+/* ── Spinner ── */
 .spinner {
   display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,0.35);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   vertical-align: middle;
-  margin-right: 8px;
+  margin-right: 7px;
 }
 
-/* ─── Animaciones ────────────────────────────────────────────────── */
+/* ── Animaciones ── */
 @keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-16px); }
+  from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
+@keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  50%       { opacity: 0.3; }
 }
