@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cola de Turnos</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .cola-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.5rem;
+        }
+
+        .cola-title {
+          font-family: 'DM Serif Display', serif;
+          font-size: 1.6rem;
+          font-weight: 400;
+        }
+
+        .refresh-btn {
+          background: transparent;
+          border: 0.5px solid var(--border);
+          border-radius: 8px;
+          padding: 8px 14px;
+          color: var(--muted);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .refresh-icon { font-size: 14px; transition: transform 0.4s; }
+        .refresh-btn.spinning .refresh-icon { transform: rotate(360deg); }
+
+        /* Turno siendo atendido ahora */
+        .turno-actual {
+          background: rgba(79,142,247,0.08);
+          border: 0.5px solid rgba(79,142,247,0.3);
+          border-radius: var(--radius);
+          padding: 1.5rem;
+          margin-bottom: 1.5rem;
+          display: none;
+          animation: fadeUp 0.5s ease both;
+        }
+
+        .turno-actual.show { display: block; }
+
+        .turno-actual-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: var(--accent);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 0.5rem;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .live-dot {
+          width: 7px; height: 7px;
+          border-radius: 50%;
+          background: var(--accent);
+          animation: pulse 1.5s ease infinite;
+        }
+
+        .turno-actual-numero {
+          font-family: 'DM Serif Display', serif;
+          font-size: 2.8rem;
+          color: var(--accent);
+          line-height: 1;
+        }
+
+        .turno-actual-nombre {
+          font-size: 14px;
+          color: var(--muted);
+          margin-top: 4px;
+        }
+
+        /* Lista de espera */
+        .seccion-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: var(--muted);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 10px;
+        }
+
+        .turno-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          background: var(--surface);
+          border: 0.5px solid var(--border);
+          border-radius: 10px;
+          padding: 14px 16px;
+          margin-bottom: 8px;
+          animation: fadeUp 0.4s ease both;
+          transition: border-color 0.2s;
+        }
+
+        .turno-item:hover { border-color: var(--accent); }
+
+        .turno-pos {
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--muted);
+          min-width: 24px;
+          text-align: center;
+        }
+
+        .turno-num {
+          font-family: 'DM Serif Display', serif;
+          font-size: 1.4rem;
+          color: var(--text);
+          min-width: 64px;
+        }
+
+        .turno-info { flex: 1; }
+
+        .turno-nombre {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text);
+        }
+
+        .turno-cedula {
+          font-size: 12px;
+          color: var(--muted);
+          margin-top: 2px;
+        }
+
+        .turno-badge {
+          font-size: 11px;
+          font-weight: 500;
+          padding: 3px 10px;
+          border-radius: 999px;
+        }
+
+        .badge-warn   { background: rgba(251,146,60,0.15);  color: var(--warn); }
+        .badge-purple { background: rgba(167,139,250,0.15); color: var(--accent2); }
+
+        /* Estado vacío */
+        .empty-state {
+          text-align: center;
+          padding: 3rem 1rem;
+          display: none;
+        }
+
+        .empty-state.show { display: block; }
+
+        .empty-icon {
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
+          opacity: 0.4;
+        }
+
+        .empty-title {
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--text);
+          margin-bottom: 4px;
+        }
+
+        .empty-sub {
+          font-size: 13px;
+          color: var(--muted);
+        }
+
+        /* Contador */
+        .counter-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 1.5rem;
+        }
+
+        .counter-chip {
+          flex: 1;
+          background: var(--surface);
+          border: 0.5px solid var(--border);
+          border-radius: 10px;
+          padding: 12px;
+          text-align: center;
+        }
+
+        .counter-num {
+          font-family: 'DM Serif Display', serif;
+          font-size: 1.8rem;
+          color: var(--text);
+          line-height: 1;
+        }
+
+        .counter-label {
+          font-size: 11px;
+          color: var(--muted);
+          margin-top: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        /* Auto-refresh indicator */
+        .auto-refresh {
+          font-size: 12px;
+          color: var(--muted);
+          text-align: center;
+          margin-top: 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .auto-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: var(--success);
+          animation: pulse 2s ease infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div class="logo-dot">Sistema de Turnos</div>
+        <h1>Cola de espera</h1>
+        <p class="subtitle">Actualización automática cada 15 segundos</p>
+    </div>
+
+    <div class="card">
+
+        <div class="cola-header">
+            <span class="cola-title">Turnos activos</span>
+            <button class="refresh-btn" id="refreshBtn" onclick="cargarCola()">
+                <span class="refresh-icon">↻</span>
+                Actualizar
+            </button>
+        </div>
+
+        <!-- Turno siendo atendido ahora -->
+        <div class="turno-actual" id="turnoActual">
+            <div class="turno-actual-label">
+                <div class="live-dot"></div>
+                Atendiendo ahora
+            </div>
+            <div class="turno-actual-numero" id="actualNumero">—</div>
+            <div class="turno-actual-nombre" id="actualNombre">—</div>
+        </div>
+
+        <!-- Contadores -->
+        <div class="counter-row">
+            <div class="counter-chip">
+                <div class="counter-num" id="countEspera">0</div>
+                <div class="counter-label">En espera</div>
+            </div>
+            <div class="counter-chip">
+                <div class="counter-num" id="countPrioritarios">0</div>
+                <div class="counter-label">Prioritarios</div>
+            </div>
+        </div>
+
+        <!-- Lista en espera -->
+        <div class="seccion-label">En espera</div>
+        <div id="listaTurnos"></div>
+
+        <!-- Estado vacío -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">✓</div>
+            <div class="empty-title">No hay turnos en espera</div>
+            <div class="empty-sub">La cola está vacía por el momento</div>
+        </div>
+
+    </div>
+
+    <div class="auto-refresh">
+        <div class="auto-dot"></div>
+        Actualizando automáticamente
+    </div>
+
+    <a href="generar_turno.html" class="nav-link">← Solicitar un turno</a>
+
+</div>
+
+<script>
+    const API = 'http://localhost:8080/api';
+
+    async function cargarCola() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('spinning');
+
+      try {
+        const res  = await fetch(`${API}/turnos/cola`);
+        const cola = await res.json();
+        renderCola(cola);
+      } catch (e) {
+        console.error('Error al cargar cola:', e);
+      } finally {
+        setTimeout(() => btn.classList.remove('spinning'), 400);
+      }
+    }
+
+    function renderCola(cola) {
+      const lista        = document.getElementById('listaTurnos');
+      const emptyState   = document.getElementById('emptyState');
+      const turnoActual  = document.getElementById('turnoActual');
+
+      // Separar el turno siendo atendido de los que están en espera
+      const llamado  = cola.find(t => t.estado === 'LLAMADO');
+      const enEspera = cola.filter(t => t.estado === 'EN_COLA');
+
+      // Turno siendo atendido ahora
+      if (llamado) {
+        document.getElementById('actualNumero').textContent = llamado.numeroTurno;
+        document.getElementById('actualNombre').textContent = llamado.nombreUsuario;
+        turnoActual.classList.add('show');
+      } else {
+        turnoActual.classList.remove('show');
+      }
+
+      // Contadores
+      const prioritarios = enEspera.filter(t => t.prioridad !== 'NINGUNO').length;
+      document.getElementById('countEspera').textContent      = enEspera.length;
+      document.getElementById('countPrioritarios').textContent = prioritarios;
+
+      // Lista en espera
+      lista.innerHTML = '';
+
+      if (enEspera.length === 0) {
+        emptyState.classList.add('show');
+        return;
+      }
+
+      emptyState.classList.remove('show');
+
+      enEspera.forEach((turno, i) => {
+        const item = document.createElement('div');
+        item.className = 'turno-item';
+        item.style.animationDelay = `${i * 0.05}s`;
+
+        const badge = turno.prioridad !== 'NINGUNO'
+          ? `<span class="turno-badge ${turno.prioridad === 'EMBARAZO' ? 'badge-warn' : 'badge-purple'}">
+               ${turno.prioridad === 'EMBARAZO' ? '🤰 Prioritario' : '♿ Prioritario'}
+             </span>`
+          : '';
+
+        item.innerHTML = `
+          <div class="turno-pos">${i + 1}</div>
+          <div class="turno-num">${turno.numeroTurno}</div>
+          <div class="turno-info">
+            <div class="turno-nombre">${turno.nombreUsuario}</div>
+            <div class="turno-cedula">C.C. ${turno.cedulaUsuario}</div>
+          </div>
+          ${badge}
+        `;
+
+        lista.appendChild(item);
+      });
+    }
+
+    // Carga inicial
+    cargarCola();
+
+    // Auto-refresh cada 15 segundos
+    setInterval(cargarCola, 15000);
+</script>
+</body>
+</html>

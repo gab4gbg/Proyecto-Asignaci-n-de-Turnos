@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Turno — Sistema de Turnos</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { justify-content: flex-start; padding: 2.5rem 1rem; }
+
+        /* Step indicator */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .step-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--accent);
+            transform: scale(1.3);
+        }
+
+        .step-dot.done { background: var(--success); }
+
+        /* Sector selector */
+        .sector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .sector-btn {
+            background: var(--bg);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .sector-btn:hover { border-color: rgba(79,142,247,0.3); color: var(--text); }
+
+        .sector-btn.selected {
+            background: rgba(79,142,247,0.08);
+            border-color: rgba(79,142,247,0.5);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Priority options */
+        .priority-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .priority-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .priority-item:hover { border-color: rgba(79,142,247,0.25); }
+        .priority-item input { display: none; }
+
+        .priority-item.selected {
+            border-color: rgba(79,142,247,0.45);
+            background: rgba(79,142,247,0.05);
+        }
+
+        .priority-item.selected.warn {
+            border-color: rgba(251,146,60,0.45);
+            background: rgba(251,146,60,0.05);
+        }
+
+        .priority-item.selected.purple {
+            border-color: rgba(167,139,250,0.45);
+            background: rgba(167,139,250,0.05);
+        }
+
+        .priority-emoji { font-size: 18px; width: 28px; text-align: center; }
+
+        .priority-text { flex: 1; }
+
+        .priority-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .priority-desc {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .priority-check {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 0.5px solid var(--border);
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .priority-item.selected .priority-check {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .priority-item.selected.warn .priority-check {
+            background: var(--warn);
+            border-color: var(--warn);
+        }
+
+        .priority-item.selected.purple .priority-check {
+            background: var(--accent2);
+            border-color: var(--accent2);
+        }
+
+        .priority-check::after {
+            content: '';
+            display: none;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .priority-item.selected .priority-check::after { display: block; }
+
+        /* Campo dinámico generado por backend */
+        .dynamic-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 0;
+        }
+
+        /* Progress bar en el btn */
+        .btn-progress {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-progress::after {
+            content: '';
+            position: absolute;
+            left: -100%; top: 0; bottom: 0;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            animation: shimmer 1.2s ease infinite;
+            display: none;
+        }
+
+        .btn-progress.loading::after { display: block; }
+
+        @keyframes shimmer {
+            to { left: 100%; }
+        }
+
+        /* Confirmación visual entre pasos */
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.2rem;
+        }
+
+        .step-num {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(79,142,247,0.12);
+            border: 0.5px solid rgba(79,142,247,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        /* Ticket animado */
+        .ticket-inner { animation: popIn 0.4s cubic-bezier(0.34,1.3,0.64,1) both; }
+
+        .confetti-row {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, var(--surface) 25%, rgba(255,255,255,0.04) 50%, var(--surface) 75%);
+            background-size: 200% 100%;
+            animation: skeletonWave 1.4s ease infinite;
+            border-radius: 8px;
+            height: 14px;
+            width: 100%;
+        }
+
+        @keyframes skeletonWave {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Número de posición en cola */
+        .queue-pos {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .queue-pos strong { color: var(--text); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-dot">Sistema de Turnos</div>
+        <h1>Solicitar turno</h1>
+        <p class="subtitle">Completa los datos para ser atendido</p>
+    </div>
+
+    <!-- Step dots -->
+    <div class="step-indicator">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- ══ FORMULARIO ══════════════════════════════════════════════ -->
+    <div class="card" id="formCard">
+
+        <!-- Paso 1: Datos personales -->
+        <div id="paso1">
+
+            <div class="step-header">
+                <div class="step-num">1</div>
+                <div class="step-title">Tus datos</div>
+            </div>
+
+            <!-- Campo fijo: Nombre -->
+            <div class="field">
+                <label for="inputNombre">Nombre completo</label>
+                <input type="text" id="inputNombre" placeholder="Ej. María García" autocomplete="name" required>
+            </div>
+
+            <!-- Campo fijo: Cédula -->
+            <div class="field">
+                <label for="inputCedula">Número de documento</label>
+                <input type="text" id="inputCedula" placeholder="Ej. 1234567890" autocomplete="off" required>
+            </div>
+
+            <!-- Campos dinámicos del backend -->
+            <div id="camposDinamicos" class="dynamic-fields"></div>
+
+            <button class="btn-primary" onclick="irPaso2()" style="margin-top:1.2rem">
+                Continuar
+            </button>
+
+        </div>
+
+        <!-- Paso 2: Sector (si hay más de uno) -->
+        <div id="paso2" style="display:none;">
+
+            <div class="step-header">
+                <div class="step-num">2</div>
+                <div class="step-title">¿A qué servicio te diriges?</div>
+            </div>
+
+            <div class="sector-grid" id="sectorGrid">
+                <!-- Se llena dinámicamente -->
+                <div class="skeleton" style="height:50px; border-radius:10px;"></div>
+                <div class="skeleton" style="height:50px; border-radius:10px;"></div>
+            </div>
+
+            <p class="queue-pos" id="sectorSkipNote" style="display:none;">
+                No hay sectores configurados. Puedes omitir este paso.
+            </p>
+
+            <div style="display:flex; gap:8px; margin-top:1.2rem;">
+                <button class="btn-secondary" onclick="irPaso1()" style="width:auto; padding:12px 18px;">← Atrás</button>
+                <button class="btn-primary" onclick="irPaso3()">Continuar</button>
+            </div>
+
+        </div>
+
+        <!-- Paso 3: Prioridad -->
+        <div id="paso3" style="display:none;">
+
+            <div class="step-header">
+                <div class="step-num">3</div>
+                <div class="step-title">¿Tienes alguna condición prioritaria?</div>
+            </div>
+
+            <div class="priority-list">
+                <div class="priority-item selected" data-valor="NINGUNO" onclick="seleccionarPrioridad(this)">
+                    <div class="priority-emoji">👤</div>
+                    <div class="priority-text">
+                        <div class="priority-name">Sin prioridad</div>
+                        <div class="priority-desc">Turno regular en orden de llegada</div>
+                    </div>
+                    <div class="priority-check"></div>
+                </div>
+
+                <div class="priority-item warn" data-valor="EMBARAZO" onclick="seleccionarPrioridad(this)">
+                    <div class="priority-emoji">🤰</div>
+                    <div class="priority-text">
+                        <div class="priority-name">Embarazo</div>
+                        <div class="priority-desc">Atención prioritaria para gestantes</div>
+                    </div>
+                    <div class="priority-check"></div>
+                </div>
+
+                <div class="priority-item purple" data-valor="DISCAPACIDAD" onclick="seleccionarPrioridad(this)">
+                    <div class="priority-emoji">♿</div>
+                    <div class="priority-text">
+                        <div class="priority-name">Discapacidad</div>
+                        <div class="priority-desc">Atención prioritaria por discapacidad</div>
+                    </div>
+                    <div class="priority-check"></div>
+                </div>
+            </div>
+
+            <p class="info-msg" style="margin-top:1rem;">
+                🔒 Los turnos prioritarios son atendidos antes que los turnos regulares.
+            </p>
+
+            <div style="display:flex; gap:8px; margin-top:1.2rem;">
+                <button class="btn-secondary" onclick="irPaso2()" style="width:auto; padding:12px 18px;">← Atrás</button>
+                <button class="btn-primary btn-progress" id="btnGenerar" onclick="generarTurno()">
+                    Generar turno
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ══ TICKET RESULTADO ═══════════════════════════════════════ -->
+    <div class="ticket" id="ticketResult">
+        <div class="ticket-inner">
+
+            <div class="confetti-row">🎉</div>
+
+            <div class="ticket-label">Tu número de turno</div>
+            <div class="ticket-number" id="ticketNumero">—</div>
+            <div class="ticket-name" id="ticketNombre">—</div>
+
+            <hr class="ticket-divider">
+
+            <div class="ticket-row">
+                <span class="ticket-row-label">Documento</span>
+                <span class="ticket-row-value" id="ticketCedula">—</span>
+            </div>
+
+            <div class="ticket-row" id="rowSector" style="display:none;">
+                <span class="ticket-row-label">Sector</span>
+                <span class="ticket-row-value" id="ticketSector">—</span>
+            </div>
+
+            <div class="ticket-row">
+                <span class="ticket-row-label">Estado</span>
+                <span class="ticket-row-value"><span class="badge badge-orange">En espera</span></span>
+            </div>
+
+            <div class="ticket-priority" id="ticketPriorityRow" style="display:none;">
+                <span class="badge badge-orange" id="ticketPriorityBadge">Prioritario</span>
+            </div>
+
+            <hr class="ticket-divider">
+
+            <div class="queue-pos" id="ticketPosicion">
+                Consultando posición en cola...
+            </div>
+
+        </div>
+
+        <button class="btn-secondary" onclick="nuevoTurno()" style="margin-top:1rem;">
+            Solicitar otro turno
+        </button>
+
+        <a href="cola_turnos.html" class="nav-link">Ver cola de turnos →</a>
+        <a href="index.html" class="nav-link" style="margin-top:0.5rem;">← Volver al inicio</a>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:8080/api';
+
+    let sectorSeleccionado  = null;
+    let prioridadSeleccionada = 'NINGUNO';
+    let sectoresDisponibles = [];
+
+    // ── Carga inicial ──────────────────────────────────────────────
+
+    async function cargarCamposDinamicos() {
+        try {
+            const res    = await fetch(`${API}/campos`);
+            const campos = await res.json();
+            const cont   = document.getElementById('camposDinamicos');
+            cont.innerHTML = '';
+
+            campos
+                .filter(c => c.activo)
+                .sort((a, b) => a.orden - b.orden)
+                .forEach(campo => {
+                    const div = document.createElement('div');
+                    div.className = 'field';
+                    div.innerHTML = `
+                        <label for="campo_${campo.id}">
+                            ${campo.etiqueta}${campo.requerido ? '' : ' <span style="color:var(--muted);font-weight:300;">(opcional)</span>'}
+                        </label>
+                        <input
+                            type="${mapTipo(campo.tipo)}"
+                            id="campo_${campo.id}"
+                            data-campo-id="${campo.id}"
+                            data-requerido="${campo.requerido}"
+                            placeholder="${campo.etiqueta}"
+                            ${campo.requerido ? 'required' : ''}
+                        >
+                    `;
+                    cont.appendChild(div);
+                });
+        } catch {
+            // Sin campos extra → continúa normalmente
+        }
+    }
+
+    function mapTipo(tipo) {
+        const mapa = { texto: 'text', numero: 'number', fecha: 'date' };
+        return mapa[tipo] || 'text';
+    }
+
+    async function cargarSectores() {
+        const grid = document.getElementById('sectorGrid');
+        try {
+            const res      = await fetch(`${API}/sectores`);
+            sectoresDisponibles = await res.json();
+            const activos  = sectoresDisponibles.filter(s => s.activo);
+
+            if (activos.length === 0) {
+                grid.innerHTML = '';
+                document.getElementById('sectorSkipNote').style.display = 'block';
+                return;
+            }
+
+            grid.innerHTML = activos.map(s => `
+                <button class="sector-btn" data-id="${s.id}" data-nombre="${s.nombre}"
+                        onclick="seleccionarSector(this)">
+                    ${s.nombre}
+                </button>
+            `).join('');
+
+        } catch {
+            grid.innerHTML = '<p style="color:var(--muted);font-size:13px;">No se pudieron cargar los sectores.</p>';
+        }
+    }
+
+    // ── Navegación entre pasos ─────────────────────────────────────
+
+    function irPaso1() {
+        setStep(1);
+    }
+
+    function irPaso2() {
+        // Validar paso 1
+        const nombre  = document.getElementById('inputNombre').value.trim();
+        const cedula  = document.getElementById('inputCedula').value.trim();
+
+        if (!nombre) { resaltar('inputNombre'); return; }
+        if (!cedula) { resaltar('inputCedula'); return; }
+
+        // Validar campos dinámicos requeridos
+        const dinamicos = document.querySelectorAll('[data-requerido="true"]');
+        for (const inp of dinamicos) {
+            if (!inp.value.trim()) { resaltar(inp.id); return; }
+        }
+
+        setStep(2);
+    }
+
+    function irPaso3() {
+        setStep(3);
+    }
+
+    function setStep(n) {
+        document.getElementById('paso1').style.display = n === 1 ? 'block' : 'none';
+        document.getElementById('paso2').style.display = n === 2 ? 'block' : 'none';
+        document.getElementById('paso3').style.display = n === 3 ? 'block' : 'none';
+
+        ['dot1','dot2','dot3'].forEach((id, i) => {
+            const el = document.getElementById(id);
+            el.classList.toggle('active', i + 1 === n);
+            el.classList.toggle('done', i + 1 < n);
+        });
+    }
+
+    function resaltar(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.borderColor = 'rgba(248,113,113,0.6)';
+        el.focus();
+        setTimeout(() => el.style.borderColor = '', 1800);
+    }
+
+    // ── Selección de sector ────────────────────────────────────────
+
+    function seleccionarSector(btn) {
+        document.querySelectorAll('.sector-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        sectorSeleccionado = parseInt(btn.dataset.id);
+    }
+
+    // ── Selección de prioridad ─────────────────────────────────────
+
+    function seleccionarPrioridad(item) {
+        document.querySelectorAll('.priority-item').forEach(el => el.classList.remove('selected'));
+        item.classList.add('selected');
+        prioridadSeleccionada = item.dataset.valor;
+    }
+
+    // ── Generar turno ──────────────────────────────────────────────
+
+    async function generarTurno() {
+        const btn    = document.getElementById('btnGenerar');
+        const nombre = document.getElementById('inputNombre').value.trim();
+        const cedula = document.getElementById('inputCedula').value.trim();
+
+        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerHTML = '<span class="spinner"></span>Generando...';
+
+        try {
+            const res   = await fetch(`${API}/turnos`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({
+                    nombreUsuario: nombre,
+                    cedulaUsuario: cedula,
+                    prioridad:     prioridadSeleccionada
+                })
+            });
+
+            if (!res.ok) throw new Error('Error al crear turno');
+
+            const turno = await res.json();
+
+            // Asignar sector si se seleccionó
+            if (sectorSeleccionado) {
+                await fetch(`${API}/turnos/${turno.id}/sector`, {
+                    method:  'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ sectorId: sectorSeleccionado })
+                }).catch(() => {});
+            }
+
+            mostrarTicket(turno);
+
+        } catch (err) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            btn.innerHTML = 'Generar turno';
+            alert('Error al generar el turno. Verifica tu conexión e intenta de nuevo.');
+        }
+    }
+
+    function mostrarTicket(turno) {
+        // Ocultar form, mostrar ticket
+        document.getElementById('formCard').style.display = 'none';
+        const ticket = document.getElementById('ticketResult');
+        ticket.classList.add('show');
+
+        // Rellenar datos
+        document.getElementById('ticketNumero').textContent = turno.numeroTurno;
+        document.getElementById('ticketNombre').textContent = turno.nombreUsuario;
+        document.getElementById('ticketCedula').textContent = turno.cedulaUsuario;
+
+        // Sector
+        if (sectorSeleccionado) {
+            const sec = sectoresDisponibles.find(s => s.id === sectorSeleccionado);
+            if (sec) {
+                document.getElementById('ticketSector').textContent = sec.nombre;
+                document.getElementById('rowSector').style.display = 'flex';
+            }
+        }
+
+        // Prioridad
+        if (turno.prioridad !== 'NINGUNO') {
+            const badgeEl  = document.getElementById('ticketPriorityBadge');
+            const rowEl    = document.getElementById('ticketPriorityRow');
+            const etiqueta = turno.prioridad === 'EMBARAZO' ? '🤰 Embarazo' : '♿ Discapacidad';
+            badgeEl.textContent = etiqueta;
+            badgeEl.className   = 'badge ' + (turno.prioridad === 'EMBARAZO' ? 'badge-orange' : 'badge-purple');
+            rowEl.style.display = 'block';
+        }
+
+        // Posición en cola
+        actualizarPosicion(turno.numeroTurno);
+    }
+
+    async function actualizarPosicion(numeroTurno) {
+        try {
+            const res  = await fetch(`${API}/turnos/cola`);
+            const cola = await res.json();
+            const enEspera = cola.filter(t => t.estado === 'EN_COLA' || t.estado === 'PENDIENTE');
+            const pos  = enEspera.findIndex(t => t.numeroTurno === numeroTurno) + 1;
+            const el   = document.getElementById('ticketPosicion');
+
+            if (pos > 0) {
+                el.innerHTML = `Posición en cola: <strong>${pos}</strong> de ${enEspera.length}`;
+            } else {
+                el.innerHTML = `Estás registrado en la cola ✓`;
+            }
+        } catch {
+            document.getElementById('ticketPosicion').textContent = '';
+        }
+    }
+
+    function nuevoTurno() {
+        // Resetear todo
+        document.getElementById('inputNombre').value = '';
+        document.getElementById('inputCedula').value = '';
+        sectorSeleccionado   = null;
+        prioridadSeleccionada = 'NINGUNO';
+
+        // Resetear prioridad visual
+        document.querySelectorAll('.priority-item').forEach(el => el.classList.remove('selected'));
+        document.querySelector('[data-valor="NINGUNO"]').classList.add('selected');
+
+        // Resetear sector
+        document.querySelectorAll('.sector-btn').forEach(b => b.classList.remove('selected'));
+
+        // Resetear ticket oculto
+        document.getElementById('rowSector').style.display    = 'none';
+        document.getElementById('ticketPriorityRow').style.display = 'none';
+
+        // Resetear botón
+        const btn = document.getElementById('btnGenerar');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        btn.innerHTML = 'Generar turno';
+
+        // Mostrar form, ocultar ticket
+        document.getElementById('ticketResult').classList.remove('show');
+        document.getElementById('formCard').style.display = 'block';
+        setStep(1);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Inicialización ─────────────────────────────────────────────
+
+    cargarCamposDinamicos();
+    cargarSectores();
+</script>
+
+</body>
+</html>
