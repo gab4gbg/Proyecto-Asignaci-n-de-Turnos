@@ -6,11 +6,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class SectorService {
+public class SectorServices
+{
 
     private final SectorRepository sectorRepository;
 
-    public SectorService(SectorRepository sectorRepository) {
+    public SectorServices(SectorRepository sectorRepository) {
         this.sectorRepository = sectorRepository;
     }
 
@@ -29,6 +30,10 @@ public class SectorService {
     // Crear sector
     public SectorModel crearSector(String nombre)
     {
+        if (sectorRepository.existsByNombre(nombre))
+        {
+            throw new RuntimeException("Ya existe un sector con el nombre: " + nombre);
+        }
         SectorModel sector = new SectorModel();
         sector.setNombre(nombre);
         sector.setActivo(true);

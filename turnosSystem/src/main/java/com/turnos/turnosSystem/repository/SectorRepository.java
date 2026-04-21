@@ -9,4 +9,6 @@ import java.util.List;
 public interface SectorRepository extends JpaRepository<SectorModel, Long>
 {
     List<SectorModel> findByActivoTrue();
+
+    boolean existsByNombre(String nombre);
 }

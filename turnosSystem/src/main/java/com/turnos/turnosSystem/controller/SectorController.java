@@ -1,7 +1,7 @@
 package com.turnos.turnosSystem.controller;
 
 import com.turnos.turnosSystem.model.SectorModel;
-import com.turnos.turnosSystem.services.SectorService;
+import com.turnos.turnosSystem.services.SectorServices;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,9 +12,9 @@ import java.util.Map;
 public class SectorController
 {
 
-    private final SectorService sectorService;
+    private final SectorServices sectorService;
 
-    public SectorController(SectorService sectorService)
+    public SectorController(SectorServices sectorService)
     {
         this.sectorService = sectorService;
     }

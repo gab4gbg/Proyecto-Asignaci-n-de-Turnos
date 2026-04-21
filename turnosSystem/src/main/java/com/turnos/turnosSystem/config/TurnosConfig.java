@@ -19,13 +19,17 @@ public class TurnosConfig
                 .csrf(csrf -> csrf.disable()) // Deshabilitado por ahora — en producción se habilita con tokens
                 .authorizeHttpRequests(auth -> auth
 
-                        // Rutas públicas (cualquier usuario sin login)
+                        //Rutas públicas
                         .requestMatchers(HttpMethod.POST, "/api/turnos").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/turnos/cola").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/sectores").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/campos").permitAll()
 
-                        // Rutas de admin (requieren autenticación)
+                        //Rutas admin
                         .requestMatchers("/api/turnos/*/sector").authenticated()
                         .requestMatchers("/api/turnos/*/estado").authenticated()
+                        .requestMatchers("/api/sectores/**").authenticated()
+                        .requestMatchers("/api/campos/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

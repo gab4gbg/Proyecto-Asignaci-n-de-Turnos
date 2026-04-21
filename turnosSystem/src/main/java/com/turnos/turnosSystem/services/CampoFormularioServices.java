@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CampoFormularioService
+public class CampoFormularioServices
 {
 
     private final CampoFormularioRepository campoRepository;
 
-    public CampoFormularioService(CampoFormularioRepository campoRepository)
+    public CampoFormularioServices(CampoFormularioRepository campoRepository)
     {
         this.campoRepository = campoRepository;
     }

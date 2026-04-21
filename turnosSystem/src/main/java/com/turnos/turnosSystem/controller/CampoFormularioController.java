@@ -1,7 +1,7 @@
 package com.turnos.turnosSystem.controller;
 
 import com.turnos.turnosSystem.model.CampoFormularioModel;
-import com.turnos.turnosSystem.services.CampoFormularioService;
+import com.turnos.turnosSystem.services.CampoFormularioServices;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,9 +12,9 @@ import java.util.Map;
 public class CampoFormularioController
 {
 
-    private final CampoFormularioService campoService;
+    private final CampoFormularioServices campoService;
 
-    public CampoFormularioController(CampoFormularioService campoService)
+    public CampoFormularioController(CampoFormularioServices campoService)
     {
         this.campoService = campoService;
     }
