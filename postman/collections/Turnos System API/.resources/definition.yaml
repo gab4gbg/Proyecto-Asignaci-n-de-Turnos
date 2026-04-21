@@ -1,0 +1,11 @@
+$kind: collection
+name: Turnos System API
+variables:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+  - key: username
+    value: admin
+  - key: password
+    value: admin123
+  - key: turnoId
+    value: '1'

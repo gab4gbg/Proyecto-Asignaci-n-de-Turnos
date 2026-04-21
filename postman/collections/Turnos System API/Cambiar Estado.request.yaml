@@ -1,0 +1,22 @@
+$kind: http-request
+name: Cambiar Estado
+method: PUT
+url: '{{baseUrl}}/api/turnos/{{turnoId}}/estado'
+order: 4000
+description: 'Cambia el estado de un turno. Los estados posibles son: PENDIENTE, EN_COLA, LLAMADO, ATENDIDO, CANCELADO.'
+auth:
+  type: basic
+  credentials:
+    - key: username
+      value: '{{username}}'
+    - key: password
+      value: '{{password}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nuevoEstado": "EN_COLA"
+    }

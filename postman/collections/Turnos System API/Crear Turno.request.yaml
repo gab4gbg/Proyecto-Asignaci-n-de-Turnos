@@ -1,0 +1,24 @@
+$kind: http-request
+name: Crear Turno
+method: POST
+url: '{{baseUrl}}/api/turnos'
+order: 1000
+description: 'Crea un nuevo turno para un usuario. La prioridad puede ser: NINGUNO, EMBARAZO, DISCAPACIDAD, PERSONALIZADO.'
+auth:
+  type: basic
+  credentials:
+    - key: username
+      value: '{{username}}'
+    - key: password
+      value: '{{password}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombreUsuario": "Juan Pérez",
+      "cedulaUsuario": "1234567890",
+      "prioridad": "NINGUNO"
+    }

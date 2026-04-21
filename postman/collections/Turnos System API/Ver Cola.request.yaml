@@ -1,0 +1,13 @@
+$kind: http-request
+name: Ver Cola
+method: GET
+url: '{{baseUrl}}/api/turnos/cola'
+order: 2000
+description: Obtiene la lista actual de turnos en cola.
+auth:
+  type: basic
+  credentials:
+    - key: username
+      value: '{{username}}'
+    - key: password
+      value: '{{password}}'
