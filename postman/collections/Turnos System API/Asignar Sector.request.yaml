@@ -1,0 +1,22 @@
+$kind: http-request
+name: Asignar Sector
+method: PUT
+url: '{{baseUrl}}/api/turnos/{{turnoId}}/sector'
+order: 3000
+description: 'Asigna un sector a un turno existente. Reemplaza {{turnoId}} con el ID del turno.'
+auth:
+  type: basic
+  credentials:
+    - key: username
+      value: '{{username}}'
+    - key: password
+      value: '{{password}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sectorId": 1
+    }
