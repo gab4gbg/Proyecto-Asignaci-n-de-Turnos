@@ -4,156 +4,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Turnos</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* Ambient background glow */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 400px;
-            background: radial-gradient(ellipse, rgba(79,142,247,0.06) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #f0f2f5;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem 1rem;
         }
 
-        .container { position: relative; z-index: 1; }
-
-        /* Animated logo mark */
-        .logo-mark {
-            width: 52px; height: 52px;
-            border-radius: 16px;
-            background: rgba(79,142,247,0.1);
-            border: 0.5px solid rgba(79,142,247,0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 22px;
-            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        .container {
+          width: 100%;
+          max-width: 480px;
         }
 
-        .header {
-            animation-delay: 0.1s;
+        .hero {
+          text-align: center;
+          margin-bottom: 2rem;
         }
 
-        /* Live queue preview chip */
-        .live-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--surface);
-            border: 0.5px solid var(--border);
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 12px;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            cursor: default;
+        .badge {
+          display: inline-block;
+          background: #dbeafe;
+          color: #1d4ed8;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 4px 14px;
+          border-radius: 999px;
+          margin-bottom: 1rem;
+          letter-spacing: 0.03em;
         }
 
-        .live-chip .live-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 1.8s ease infinite;
+        h1 {
+          font-size: 2rem;
+          font-weight: 800;
+          color: #111827;
+          letter-spacing: -0.03em;
+          line-height: 1.2;
+          margin-bottom: 0.6rem;
         }
 
-        .live-chip span { color: var(--success); font-weight: 500; }
+        .hero p {
+          font-size: 15px;
+          color: #6b7280;
+          line-height: 1.6;
+        }
 
-        /* Section label above menu */
-        .section-label {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 12px;
+        .cards {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .card {
+          display: block;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 14px;
+          padding: 1.4rem;
+          text-decoration: none;
+          transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+          transform: translateY(-2px);
+        }
+
+        .card.full { grid-column: 1 / -1; }
+
+        .card-icon {
+          width: 40px; height: 40px;
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px;
+          margin-bottom: 0.9rem;
+        }
+
+        .card-title {
+          font-size: 15px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 0.3rem;
+        }
+
+        .card-desc {
+          font-size: 13px;
+          color: #6b7280;
+          line-height: 1.5;
+          margin-bottom: 0.8rem;
+        }
+
+        .card-link {
+          font-size: 13px;
+          font-weight: 600;
+          color: #2563eb;
+        }
+
+        .card.admin-card { border-style: dashed; }
+        .card.admin-card .card-link { color: #7c3aed; }
+
+        .footer {
+          text-align: center;
+          margin-top: 1.5rem;
+          font-size: 12px;
+          color: #9ca3af;
         }
     </style>
 </head>
 <body>
-
 <div class="container">
 
-    <!-- Logo -->
-    <div class="logo-mark">🎫</div>
-
-    <!-- Header -->
-    <div class="header" style="text-align:center; margin-bottom:2rem;">
-        <div class="live-chip" id="liveChip">
-            <div class="live-dot"></div>
-            Sistema activo · <span id="countEnEspera">—</span> en espera
-        </div>
-        <h1 style="font-family:'DM Serif Display',serif; font-size:2.2rem; font-weight:400; margin-bottom:0.5rem;">
-            Sistema de Turnos
-        </h1>
-        <p class="subtitle">Gestión de atención al público</p>
+    <div class="hero">
+        <div class="badge">Sistema de Turnos</div>
+        <h1>Gestión de turnos<br>sin complicaciones</h1>
+        <p>Solicita tu turno, sigue la cola en tiempo real<br>o administra el sistema.</p>
     </div>
 
-    <!-- Menu -->
-    <div class="section-label">¿Qué deseas hacer?</div>
-    <div class="menu-grid">
-
-        <a href="generar_turno.html" class="menu-card">
-            <div class="menu-icon icon-blue">🎟️</div>
-            <div class="menu-info">
-                <div class="menu-title">Obtener un turno</div>
-                <div class="menu-desc">Solicita tu número para ser atendido</div>
-            </div>
-            <span class="menu-arrow">→</span>
+    <div class="cards">
+        <a href="generar_turno.html" class="card">
+            <div class="card-icon" style="background:#dbeafe;">🎫</div>
+            <div class="card-title">Solicitar turno</div>
+            <div class="card-desc">Obtén tu número sin registrarte.</div>
+            <div class="card-link">Ir →</div>
         </a>
 
-        <a href="cola_turnos.html" class="menu-card">
-            <div class="menu-icon icon-green">📋</div>
-            <div class="menu-info">
-                <div class="menu-title">Ver cola de turnos</div>
-                <div class="menu-desc">Consulta cuántas personas están esperando</div>
-            </div>
-            <span class="menu-arrow">→</span>
+        <a href="cola_turnos.html" class="card">
+            <div class="card-icon" style="background:#dcfce7;">👥</div>
+            <div class="card-title">Ver cola</div>
+            <div class="card-desc">Consulta quién está en espera.</div>
+            <div class="card-link">Ir →</div>
         </a>
 
-        <a href="admin_panel.html" class="menu-card">
-            <div class="menu-icon icon-purple">⚙️</div>
-            <div class="menu-info">
-                <div class="menu-title">Panel de administrador</div>
-                <div class="menu-desc">Gestión de turnos, sectores y configuración</div>
-            </div>
-            <span class="menu-arrow">→</span>
+        <a href="admin_panel.html" class="card admin-card full">
+            <div class="card-icon" style="background:#ede9fe;">⚙️</div>
+            <div class="card-title">Panel de administrador</div>
+            <div class="card-desc">Gestiona turnos, sectores y campos del formulario. Requiere credenciales.</div>
+            <div class="card-link">Acceder →</div>
         </a>
-
     </div>
 
-    <!-- Footer status -->
-    <div class="status-bar">
-        <div class="status-dot-live"></div>
-        API conectada a <code style="font-size:11px; color:var(--muted);">localhost:8080</code>
-    </div>
-
+    <div class="footer">Ingeniería de Software · Sistema de Gestión de Turnos</div>
 </div>
-
-<script>
-    const API = 'http://localhost:8080/api';
-
-    // Carga el contador de turnos en espera para el chip de estado
-    async function cargarContador() {
-        try {
-            const res  = await fetch(`${API}/turnos/cola`);
-            const cola = await res.json();
-            const enEspera = cola.filter(t => t.estado === 'EN_COLA' || t.estado === 'PENDIENTE').length;
-            const el = document.getElementById('countEnEspera');
-            el.textContent = enEspera === 0 ? 'ninguno' : enEspera;
-        } catch {
-            document.getElementById('countEnEspera').textContent = '—';
-        }
-    }
-
-    cargarContador();
-</script>
-
 </body>
 </html>
