@@ -41,7 +41,7 @@ public class TurnosConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:8080",
-                "https://proyecto-asignaci-n-de-turnos-bld7gcymi-gab4gbgs-projects.vercel.app"
+                "https://proyecto-asignaci-n-de-turnos-31msb8fes-gab4gbgs-projects.vercel.app/"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
