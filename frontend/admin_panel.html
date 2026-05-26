@@ -3,742 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administrador</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Panel Administrador</title>
     <style>
-        body { justify-content: flex-start; padding: 2rem 1rem; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container { max-width: 860px; }
-
-        /* Login overlay */
-        .login-overlay {
-          position: fixed;
-          inset: 0;
-          background: var(--bg);
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #f0f2f5;
+          min-height: 100vh;
+          padding: 2rem 1rem;
         }
 
+        /* ── Login ── */
+        .login-overlay {
+          position: fixed; inset: 0; background: #f0f2f5;
+          z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem;
+        }
         .login-overlay.hidden { display: none; }
 
         .login-card {
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
-          padding: 2.5rem 2rem;
-          width: 100%;
-          max-width: 380px;
-          animation: fadeUp 0.5s ease both;
+          background: #fff; border: 1px solid #e5e7eb;
+          border-radius: 14px; padding: 2.2rem 2rem;
+          width: 100%; max-width: 360px;
         }
 
         .login-icon {
-          width: 44px; height: 44px;
-          background: rgba(79,142,247,0.12);
-          border: 0.5px solid rgba(79,142,247,0.3);
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 20px;
-          margin-bottom: 1.2rem;
+          width: 42px; height: 42px; background: #dbeafe;
+          border-radius: 10px; display: flex; align-items: center;
+          justify-content: center; font-size: 18px; margin-bottom: 1rem;
         }
 
-        .login-title {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.6rem;
-          margin-bottom: 0.3rem;
+        .login-title { font-size: 1.3rem; font-weight: 800; color: #111827; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+        .login-sub   { font-size: 13px; color: #6b7280; margin-bottom: 1.6rem; }
+
+        /* ── Panel ── */
+        .panel-wrap { max-width: 960px; margin: 0 auto; }
+
+        .topbar {
+          display: flex; align-items: center; justify-content: space-between;
+          background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+          padding: 12px 16px; margin-bottom: 1.2rem;
         }
 
-        .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.8rem; }
+        .admin-row { display: flex; align-items: center; gap: 10px; }
 
-        /* Tabs de navegación */
+        .avatar {
+          width: 34px; height: 34px; border-radius: 50%;
+          background: #dbeafe; display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 700; color: #1d4ed8;
+        }
+
+        .admin-name { font-size: 14px; font-weight: 700; color: #111827; }
+        .admin-role { font-size: 12px; color: #9ca3af; }
+
+        .btn-logout {
+          background: transparent; border: 1px solid #e5e7eb; border-radius: 8px;
+          padding: 6px 14px; font-family: inherit; font-size: 13px; font-weight: 500;
+          color: #6b7280; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-logout:hover { border-color: #fca5a5; color: #dc2626; background: #fef2f2; }
+
+        /* ── Tabs ── */
         .tabs {
-          display: flex;
-          gap: 4px;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 4px;
-          margin-bottom: 1.5rem;
+          display: flex; gap: 4px; background: #fff;
+          border: 1px solid #e5e7eb; border-radius: 10px;
+          padding: 4px; margin-bottom: 1.2rem;
         }
 
         .tab {
-          flex: 1;
-          background: transparent;
-          border: none;
-          border-radius: 8px;
-          padding: 9px 8px;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
-          font-weight: 400;
-          color: var(--muted);
-          cursor: pointer;
-          transition: all 0.2s;
+          flex: 1; background: transparent; border: none; border-radius: 8px;
+          padding: 9px; font-family: inherit; font-size: 13px; font-weight: 500;
+          color: #6b7280; cursor: pointer; transition: all 0.15s;
         }
+        .tab:hover { color: #111827; }
+        .tab.active { background: #f0f2f5; color: #111827; font-weight: 600; }
 
-        .tab:hover { color: var(--text); }
-
-        .tab.active {
-          background: var(--bg);
-          color: var(--text);
-          font-weight: 500;
-          border: 0.5px solid var(--border);
-        }
-
-        /* Panel content */
+        /* ── Panels ── */
         .panel { display: none; }
-        .panel.active { display: block; animation: fadeUp 0.3s ease both; }
+        .panel.active { display: block; }
 
-        /* Tabla de turnos */
+        /* ── Tabla ── */
         .table-wrap {
-          overflow-x: auto;
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
+          background: #fff; border: 1px solid #e5e7eb;
+          border-radius: 14px; overflow-x: auto;
         }
 
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
-        thead { background: var(--surface); }
+        thead { background: #f9fafb; }
 
         th {
-          padding: 12px 16px;
-          text-align: left;
-          font-size: 11px;
-          font-weight: 500;
-          color: var(--muted);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          border-bottom: 0.5px solid var(--border);
+          padding: 11px 14px; text-align: left;
+          font-size: 11px; font-weight: 700; color: #9ca3af;
+          text-transform: uppercase; letter-spacing: 0.05em;
+          border-bottom: 1px solid #f3f4f6;
         }
 
         td {
-          padding: 12px 16px;
-          border-bottom: 0.5px solid var(--border);
-          color: var(--text);
-          vertical-align: middle;
+          padding: 12px 14px; border-bottom: 1px solid #f9fafb;
+          color: #111827; vertical-align: middle;
         }
 
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
+        tr:hover td { background: #fafaf9; }
 
-        .num-cell {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.1rem;
-          color: var(--accent);
+        .tnum { font-size: 1rem; font-weight: 800; color: #2563eb; }
+
+        .epill {
+          display: inline-block; font-size: 11px; font-weight: 600;
+          padding: 3px 10px; border-radius: 999px;
         }
 
-        /* Badges de estado */
-        .estado-badge {
-          display: inline-block;
-          font-size: 11px;
-          font-weight: 500;
-          padding: 3px 10px;
-          border-radius: 999px;
+        .ppill {
+          display: inline-block; font-size: 11px; font-weight: 600;
+          padding: 3px 10px; border-radius: 999px;
         }
 
-        .estado-EN_COLA   { background: rgba(79,142,247,0.12);  color: var(--accent); }
-        .estado-LLAMADO   { background: rgba(52,211,153,0.12);  color: var(--success); }
-        .estado-ATENDIDO  { background: rgba(107,114,128,0.15); color: var(--muted); }
-        .estado-CANCELADO { background: rgba(239,68,68,0.12);   color: #f87171; }
-        .estado-PENDIENTE { background: rgba(251,146,60,0.12);  color: var(--warn); }
-
-        .prioridad-badge {
-          display: inline-block;
-          font-size: 11px;
-          padding: 2px 8px;
-          border-radius: 999px;
+        .asel {
+          background: #f9fafb; border: 1px solid #e5e7eb;
+          border-radius: 7px; padding: 5px 8px;
+          font-family: inherit; font-size: 12px; color: #111827; cursor: pointer; margin-right: 4px;
         }
 
-        .prioridad-EMBARAZO    { background: rgba(251,146,60,0.12);  color: var(--warn); }
-        .prioridad-DISCAPACIDAD{ background: rgba(167,139,250,0.12); color: var(--accent2); }
+        .abtn {
+          background: #eff6ff; border: 1px solid #bfdbfe;
+          border-radius: 7px; padding: 5px 12px;
+          font-family: inherit; font-size: 12px; font-weight: 600;
+          color: #2563eb; cursor: pointer; transition: all 0.15s;
+        }
+        .abtn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-        /* Acciones de turno */
-        .action-select {
-          background: var(--bg);
-          border: 0.5px solid var(--border);
-          border-radius: 6px;
-          padding: 5px 8px;
-          color: var(--text);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          margin-right: 4px;
+        .empty-td { text-align: center; color: #9ca3af; padding: 2.5rem; font-size: 13px; }
+
+        /* ── Crear ── */
+        .create-box {
+          background: #fff; border: 1px solid #e5e7eb;
+          border-radius: 14px; padding: 1.4rem; margin-bottom: 1rem;
         }
 
-        .btn-action {
-          background: transparent;
-          border: 0.5px solid var(--border);
-          border-radius: 6px;
-          padding: 5px 12px;
-          color: var(--muted);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
+        .create-title { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 1rem; }
+
+        .create-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+        .create-row input, .create-row select { flex: 1; min-width: 120px; }
+
+        /* ── Inputs compartidos ── */
+        input[type="text"], input[type="password"], input[type="number"], select {
+          width: 100%; background: #f9fafb;
+          border: 1.5px solid #e5e7eb; border-radius: 9px;
+          padding: 10px 13px; font-family: inherit; font-size: 14px;
+          color: #111827; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+          appearance: none;
         }
 
-        .btn-action:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-action.danger:hover { border-color: #f87171; color: #f87171; }
-
-        /* Sección crear */
-        .create-section {
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1.5rem;
-          margin-bottom: 1.2rem;
+        input:focus, select:focus {
+          border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); background: #fff;
         }
 
-        .create-title {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text);
-          margin-bottom: 1rem;
-        }
+        input::placeholder { color: #9ca3af; }
+        select option { background: #fff; }
 
-        .create-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
+        .field { margin-bottom: 1rem; }
 
-        .create-row input,
-        .create-row select {
-          flex: 1;
-          min-width: 140px;
-        }
+        label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
 
-        .create-row .btn-primary {
-          width: auto;
-          padding: 12px 20px;
-          white-space: nowrap;
+        .btn {
+          background: #2563eb; color: #fff; border: none;
+          border-radius: 9px; padding: 10px 18px;
+          font-family: inherit; font-size: 13px; font-weight: 600;
+          cursor: pointer; transition: background 0.15s; white-space: nowrap;
         }
+        .btn:hover { background: #1d4ed8; }
+        .btn-full { width: 100%; padding: 12px; font-size: 15px; margin-top: 4px; }
 
-        /* Lista de sectores / campos */
+        /* ── Items lista ── */
         .item-list { display: flex; flex-direction: column; gap: 8px; }
 
         .list-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 12px 16px;
-          transition: border-color 0.2s;
+          display: flex; align-items: center; gap: 12px;
+          background: #fff; border: 1px solid #e5e7eb;
+          border-radius: 12px; padding: 13px 16px; transition: border-color 0.15s;
         }
+        .list-item:hover { border-color: #93c5fd; }
 
-        .list-item:hover { border-color: var(--border); }
+        .idot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .don  { background: #16a34a; }
+        .doff { background: #d1d5db; }
 
-        .list-item-info { flex: 1; }
+        .iinfo { flex: 1; }
+        .iname { font-size: 14px; font-weight: 600; color: #111827; }
+        .isub  { font-size: 12px; color: #9ca3af; margin-top: 2px; }
 
-        .list-item-name {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text);
-        }
-
-        .list-item-sub {
-          font-size: 12px;
-          color: var(--muted);
-          margin-top: 2px;
-        }
-
-        .status-dot {
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .dot-active   { background: var(--success); }
-        .dot-inactive { background: var(--muted); }
-
-        /* Toggle switch */
-        .toggle {
-          position: relative;
-          width: 36px; height: 20px;
-          flex-shrink: 0;
-        }
-
+        /* ── Toggle ── */
+        .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
         .toggle input { opacity: 0; width: 0; height: 0; }
 
-        .toggle-slider {
-          position: absolute;
-          inset: 0;
-          background: var(--border);
-          border-radius: 999px;
-          cursor: pointer;
-          transition: background 0.2s;
+        .tslider {
+          position: absolute; inset: 0; background: #d1d5db;
+          border-radius: 999px; cursor: pointer; transition: background 0.2s;
         }
-
-        .toggle-slider::before {
-          content: '';
-          position: absolute;
-          width: 14px; height: 14px;
-          left: 3px; top: 3px;
-          background: white;
-          border-radius: 50%;
-          transition: transform 0.2s;
+        .tslider::before {
+          content: ''; position: absolute;
+          width: 15px; height: 15px; left: 3px; top: 3px;
+          background: #fff; border-radius: 50%;
+          transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
+        .toggle input:checked + .tslider { background: #2563eb; }
+        .toggle input:checked + .tslider::before { transform: translateX(17px); }
 
-        .toggle input:checked + .toggle-slider { background: var(--accent); }
-        .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+        /* ── Error ── */
+        .error { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #dc2626; margin-top: 10px; }
+        .error.show { display: block; }
 
-        /* Header del panel con logout */
-        .panel-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1.5rem;
-        }
-
-        .admin-info {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .admin-avatar {
-          width: 32px; height: 32px;
-          background: rgba(79,142,247,0.15);
-          border: 0.5px solid rgba(79,142,247,0.3);
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--accent);
-        }
-
-        .admin-name { font-size: 13px; font-weight: 500; }
-
-        .btn-logout {
-          background: transparent;
-          border: 0.5px solid var(--border);
-          border-radius: 8px;
-          padding: 6px 12px;
-          color: var(--muted);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-logout:hover { border-color: #f87171; color: #f87171; }
-
-        /* Toast notificación */
+        /* ── Toast ── */
         .toast {
-          position: fixed;
-          bottom: 1.5rem;
-          right: 1.5rem;
-          background: var(--surface);
-          border: 0.5px solid var(--border);
-          border-radius: 10px;
-          padding: 12px 18px;
-          font-size: 13px;
-          color: var(--text);
-          z-index: 200;
-          transform: translateY(80px);
-          opacity: 0;
-          transition: all 0.3s ease;
-          max-width: 280px;
+          position: fixed; bottom: 1.5rem; right: 1.5rem;
+          border-radius: 10px; padding: 12px 18px;
+          font-size: 13px; font-weight: 600;
+          z-index: 200; transform: translateY(80px); opacity: 0;
+          transition: all 0.25s ease; max-width: 280px;
         }
+        .toast.show    { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; }
+        .toast.error   { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
 
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { border-color: rgba(52,211,153,0.4); color: var(--success); }
-        .toast.error   { border-color: rgba(239,68,68,0.4);  color: #f87171; }
-
-        .empty-row td {
-          text-align: center;
-          color: var(--muted);
-          padding: 2rem;
-          font-size: 13px;
+        .nav-link {
+          display: block; text-align: center; margin-top: 1.2rem;
+          font-size: 13px; font-weight: 500; color: #9ca3af;
+          text-decoration: none; transition: color 0.15s;
         }
+        .nav-link:hover { color: #2563eb; }
     </style>
 </head>
 <body>
 
-<!-- Login overlay -->
+<!-- Login -->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-card">
         <div class="login-icon">🔐</div>
-        <div class="login-title">Acceso admin</div>
-        <p class="login-sub">Ingresa tus credenciales para continuar</p>
-
+        <div class="login-title">Acceso administrador</div>
+        <p class="login-sub">Ingresa tus credenciales para continuar.</p>
         <div class="field">
-            <label for="loginUser">Usuario</label>
-            <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+            <label>Usuario</label>
+            <input type="text" id="lUser" placeholder="admin" autocomplete="username">
         </div>
         <div class="field">
-            <label for="loginPass">Contraseña</label>
-            <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+            <label>Contraseña</label>
+            <input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password">
         </div>
-
-        <div class="error-msg" id="loginError"></div>
-
-        <button class="btn-primary" style="margin-top:1rem" onclick="iniciarSesion()">
-            Ingresar
-        </button>
-
+        <div class="error" id="lErr"></div>
+        <button class="btn btn-full" onclick="login()">Ingresar</button>
         <a href="index.html" class="nav-link" style="margin-top:1rem">← Volver al inicio</a>
     </div>
 </div>
 
 <!-- Panel principal -->
-<div class="container" id="mainPanel" style="display:none">
+<div class="panel-wrap" id="mainPanel" style="display:none">
 
-    <div class="panel-header">
-        <div class="admin-info">
-            <div class="admin-avatar" id="adminAvatar">A</div>
+    <div class="topbar">
+        <div class="admin-row">
+            <div class="avatar" id="avt">A</div>
             <div>
-                <div class="admin-name" id="adminName">Administrador</div>
-                <div style="font-size:11px;color:var(--muted)">Panel de gestión</div>
+                <div class="admin-name" id="aName">Administrador</div>
+                <div class="admin-role">Panel de gestión</div>
             </div>
         </div>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
-        <button class="tab active" onclick="cambiarTab('turnos', this)">Turnos</button>
-        <button class="tab" onclick="cambiarTab('sectores', this)">Sectores</button>
-        <button class="tab" onclick="cambiarTab('campos', this)">Campos</button>
+        <button class="tab active" onclick="goTab('turnos',this)">Turnos</button>
+        <button class="tab" onclick="goTab('sectores',this)">Sectores</button>
+        <button class="tab" onclick="goTab('campos',this)">Campos del formulario</button>
     </div>
 
-    <!-- ── Panel Turnos ── -->
+    <!-- Turnos -->
     <div class="panel active" id="panel-turnos">
         <div class="table-wrap">
             <table>
                 <thead>
                 <tr>
-                    <th>Turno</th>
-                    <th>Nombre</th>
-                    <th>Cédula</th>
-                    <th>Prioridad</th>
-                    <th>Estado</th>
-                    <th>Sector</th>
-                    <th>Acciones</th>
+                    <th>Turno</th><th>Nombre</th><th>Cédula</th>
+                    <th>Prioridad</th><th>Estado</th><th>Sector</th><th>Acciones</th>
                 </tr>
                 </thead>
-                <tbody id="tablaTurnos">
-                <tr class="empty-row"><td colspan="7">Cargando turnos...</td></tr>
-                </tbody>
+                <tbody id="tbl"><tr><td class="empty-td" colspan="7">Cargando...</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <!-- ── Panel Sectores ── -->
+    <!-- Sectores -->
     <div class="panel" id="panel-sectores">
-        <div class="create-section">
+        <div class="create-box">
             <div class="create-title">Crear nuevo sector</div>
             <div class="create-row">
-                <input type="text" id="inputSector" placeholder="Ej. Sector C, Caja, Servicio al cliente...">
-                <button class="btn-primary" onclick="crearSector()">Crear sector</button>
+                <input type="text" id="iSector" placeholder="Ej. Sector C, Caja, Servicio al cliente...">
+                <button class="btn" onclick="crearSector()">Crear</button>
             </div>
         </div>
-        <div class="item-list" id="listaSectores"></div>
+        <div class="item-list" id="lSectores"></div>
     </div>
 
-    <!-- ── Panel Campos ── -->
+    <!-- Campos -->
     <div class="panel" id="panel-campos">
-        <div class="create-section">
+        <div class="create-box">
             <div class="create-title">Agregar campo al formulario</div>
             <div class="create-row">
-                <input type="text" id="inputEtiqueta" placeholder="Etiqueta (ej. Teléfono)">
-                <select id="inputTipo">
+                <input type="text"   id="iEtiqueta" placeholder="Etiqueta (ej. Teléfono)">
+                <select id="iTipo">
                     <option value="texto">Texto</option>
                     <option value="numero">Número</option>
                     <option value="fecha">Fecha</option>
                 </select>
-                <input type="number" id="inputOrden" placeholder="Orden" min="1" style="max-width:90px">
-                <button class="btn-primary" onclick="crearCampo()">Agregar</button>
+                <input type="number" id="iOrden" placeholder="Orden" min="1" style="max-width:90px">
+                <button class="btn" onclick="crearCampo()">Agregar</button>
             </div>
         </div>
-        <div class="item-list" id="listaCampos"></div>
+        <div class="item-list" id="lCampos"></div>
     </div>
 
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
     const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
-    let authHeader = '';
-    let sectores   = [];
+    let auth = '', sectores = [];
 
-    // ── Auth ─────────────────────────────────────────────────────────
 
-    function iniciarSesion() {
-      const user = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
 
-      if (!user || !pass) {
-        mostrarLoginError('Completa usuario y contraseña.');
-        return;
-      }
-
-      authHeader = 'Basic ' + btoa(`${user}:${pass}`);
-
-      // Verificar credenciales con una llamada real al backend
-      fetch(`${API}/sectores/todos`, { headers: { 'Authorization': authHeader } })
-        .then(res => {
-          if (res.status === 401) throw new Error('Credenciales incorrectas');
-          if (!res.ok) throw new Error('Error del servidor');
-          return res.json();
-        })
+    // ── Auth ──
+    function login() {
+      const u = document.getElementById('lUser').value.trim();
+      const p = document.getElementById('lPass').value.trim();
+      if (!u || !p) { lErr('Completa usuario y contraseña.'); return; }
+      auth = 'Basic ' + btoa(`${u}:${p}`);
+      fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
+        .then(r => { if (r.status === 401) throw new Error('Credenciales incorrectas'); return r.json(); })
         .then(() => {
           document.getElementById('loginOverlay').classList.add('hidden');
           document.getElementById('mainPanel').style.display = 'block';
-          document.getElementById('adminName').textContent = user;
-          document.getElementById('adminAvatar').textContent = user.charAt(0).toUpperCase();
+          document.getElementById('aName').textContent = u;
+          document.getElementById('avt').textContent   = u[0].toUpperCase();
           cargarTodo();
         })
-        .catch(e => mostrarLoginError(e.message));
+        .catch(e => lErr(e.message));
     }
 
-    function cerrarSesion() {
-      authHeader = '';
+    function logout() {
+      auth = '';
       document.getElementById('loginOverlay').classList.remove('hidden');
       document.getElementById('mainPanel').style.display = 'none';
-      document.getElementById('loginUser').value = '';
-      document.getElementById('loginPass').value = '';
+      document.getElementById('lUser').value = '';
+      document.getElementById('lPass').value = '';
     }
 
-    function mostrarLoginError(msg) {
-      const el = document.getElementById('loginError');
-      el.textContent = msg;
-      el.classList.add('show');
+    function lErr(m) {
+      const el = document.getElementById('lErr');
+      el.textContent = m; el.classList.add('show');
     }
 
-    // Enter en los campos de login
-    document.getElementById('loginPass').addEventListener('keydown', e => {
-      if (e.key === 'Enter') iniciarSesion();
-    });
+    document.addEventListener('DOMContentLoaded', () =>
+      document.getElementById('lPass').addEventListener('keydown', e => { if (e.key==='Enter') login(); })
+    );
 
-    // ── Tabs ─────────────────────────────────────────────────────────
-
-    function cambiarTab(tab, btn) {
+    // ── Tabs ──
+    function goTab(name, btn) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById(`panel-${tab}`).classList.add('active');
+      document.getElementById(`panel-${name}`).classList.add('active');
     }
 
-    // ── Carga general ────────────────────────────────────────────────
+    function cargarTodo() { cargarTurnos(); cargarSectores(); cargarCampos(); }
 
-    function cargarTodo() {
-      cargarTurnos();
-      cargarSectores();
-      cargarCampos();
-    }
-
-    // ── Turnos ───────────────────────────────────────────────────────
-
+    // ── Turnos ──
     async function cargarTurnos() {
-      const res    = await fetch(`${API}/turnos/cola`, { headers: { 'Authorization': authHeader } });
-      const turnos = await res.json();
-      const tbody  = document.getElementById('tablaTurnos');
+      const data = await fetch(`${API}/turnos/cola`, { headers: { Authorization: auth } }).then(r => r.json());
+      const tbody = document.getElementById('tbl');
 
-      if (turnos.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay turnos activos</td></tr>';
-        return;
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td class="empty-td" colspan="7">No hay turnos activos</td></tr>'; return;
       }
 
-      tbody.innerHTML = turnos.map(t => `
+      const eColor = { EN_COLA:'background:#dbeafe;color:#1d4ed8', LLAMADO:'background:#dcfce7;color:#16a34a',
+                       ATENDIDO:'background:#f3f4f6;color:#6b7280', CANCELADO:'background:#fef2f2;color:#dc2626',
+                       PENDIENTE:'background:#fffbeb;color:#d97706' };
+
+      tbody.innerHTML = data.map(t => `
         <tr>
-          <td class="num-cell">${t.numeroTurno}</td>
-          <td>${t.nombreUsuario}</td>
-          <td style="color:var(--muted)">${t.cedulaUsuario}</td>
+          <td class="tnum">${t.numeroTurno}</td>
+          <td style="font-weight:600">${t.nombreUsuario}</td>
+          <td style="color:#9ca3af">${t.cedulaUsuario}</td>
           <td>${t.prioridad !== 'NINGUNO'
-            ? `<span class="prioridad-badge prioridad-${t.prioridad}">${t.prioridad === 'EMBARAZO' ? '🤰' : '♿'} ${t.prioridad}</span>`
-            : '<span style="color:var(--muted);font-size:12px">—</span>'
+            ? `<span class="ppill" style="${t.prioridad==='EMBARAZO'?'background:#fffbeb;color:#d97706':'background:#f5f3ff;color:#7c3aed'}">${t.prioridad==='EMBARAZO'?'🤰':'♿'} ${t.prioridad}</span>`
+            : '<span style="color:#d1d5db">—</span>'
           }</td>
-          <td><span class="estado-badge estado-${t.estado}">${formatEstado(t.estado)}</span></td>
-          <td style="color:var(--muted);font-size:12px">${t.sector ? t.sector.nombre : '—'}</td>
+          <td><span class="epill" style="${eColor[t.estado]||''}">${fmtE(t.estado)}</span></td>
+          <td style="color:#9ca3af;font-size:12px">${t.sector?.nombre||'—'}</td>
           <td>
-            <select class="action-select" id="sector-${t.id}">
-              <option value="">Asignar sector...</option>
-              ${sectores.map(s => `<option value="${s.id}" ${t.sector?.id === s.id ? 'selected' : ''}>${s.nombre}</option>`).join('')}
+            <select class="asel" id="sec-${t.id}">
+              <option value="">Sector...</option>
+              ${sectores.map(s=>`<option value="${s.id}"${t.sector?.id===s.id?' selected':''}>${s.nombre}</option>`).join('')}
             </select>
-            <button class="btn-action" onclick="asignarSector(${t.id})">Asignar</button>
-            <select class="action-select" id="estado-${t.id}" style="margin-left:4px">
-              ${['EN_COLA','LLAMADO','ATENDIDO','CANCELADO'].map(e =>
-                `<option value="${e}" ${t.estado === e ? 'selected' : ''}>${formatEstado(e)}</option>`
-              ).join('')}
+            <button class="abtn" onclick="asignarSector(${t.id})">Asignar</button>
+            &nbsp;
+            <select class="asel" id="est-${t.id}">
+              ${['EN_COLA','LLAMADO','ATENDIDO','CANCELADO'].map(e=>`<option value="${e}"${t.estado===e?' selected':''}>${fmtE(e)}</option>`).join('')}
             </select>
-            <button class="btn-action" onclick="cambiarEstado(${t.id})">Cambiar</button>
+            <button class="abtn" onclick="cambiarEstado(${t.id})">Cambiar</button>
           </td>
         </tr>
       `).join('');
     }
 
-    async function asignarSector(turnoId) {
-      const sectorId = document.getElementById(`sector-${turnoId}`).value;
-      if (!sectorId) { toast('Selecciona un sector primero', 'error'); return; }
-
-      await fetch(`${API}/turnos/${turnoId}/sector`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ sectorId: parseInt(sectorId) })
+    async function asignarSector(id) {
+      const sid = document.getElementById(`sec-${id}`).value;
+      if (!sid) { toast('Selecciona un sector primero', 'error'); return; }
+      await fetch(`${API}/turnos/${id}/sector`, {
+        method:'PUT', headers:{'Content-Type':'application/json', Authorization:auth},
+        body: JSON.stringify({ sectorId: +sid })
       });
-
-      toast('Sector asignado correctamente', 'success');
-      cargarTurnos();
+      toast('Sector asignado', 'success'); cargarTurnos();
     }
 
-    async function cambiarEstado(turnoId) {
-      const nuevoEstado = document.getElementById(`estado-${turnoId}`).value;
-
-      await fetch(`${API}/turnos/${turnoId}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+    async function cambiarEstado(id) {
+      const nuevoEstado = document.getElementById(`est-${id}`).value;
+      await fetch(`${API}/turnos/${id}/estado`, {
+        method:'PUT', headers:{'Content-Type':'application/json', Authorization:auth},
         body: JSON.stringify({ nuevoEstado })
       });
-
-      toast('Estado actualizado', 'success');
-      cargarTurnos();
+      toast('Estado actualizado', 'success'); cargarTurnos();
     }
 
-    // ── Sectores ─────────────────────────────────────────────────────
-
+    // ── Sectores ──
     async function cargarSectores() {
-      const res = await fetch(`${API}/sectores/todos`, { headers: { 'Authorization': authHeader } });
-      sectores  = await res.json();
-      const lista = document.getElementById('listaSectores');
-
-      if (sectores.length === 0) {
-        lista.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0">No hay sectores creados aún.</p>';
-        return;
-      }
-
-      lista.innerHTML = sectores.map(s => `
+      sectores = await fetch(`${API}/sectores/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
+      const el = document.getElementById('lSectores');
+      if (!sectores.length) { el.innerHTML='<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay sectores creados aún.</p>'; return; }
+      el.innerHTML = sectores.map(s => `
         <div class="list-item">
-          <div class="status-dot ${s.activo ? 'dot-active' : 'dot-inactive'}"></div>
-          <div class="list-item-info">
-            <div class="list-item-name">${s.nombre}</div>
-            <div class="list-item-sub">${s.activo ? 'Activo' : 'Inactivo'}</div>
+          <div class="idot ${s.activo?'don':'doff'}"></div>
+          <div class="iinfo">
+            <div class="iname">${s.nombre}</div>
+            <div class="isub">${s.activo?'Activo':'Inactivo'}</div>
           </div>
           <label class="toggle">
-            <input type="checkbox" ${s.activo ? 'checked' : ''}
-              onchange="toggleSector(${s.id}, this.checked)">
-            <span class="toggle-slider"></span>
+            <input type="checkbox" ${s.activo?'checked':''} onchange="toggleSector(${s.id},this.checked)">
+            <span class="tslider"></span>
           </label>
         </div>
       `).join('');
     }
 
     async function crearSector() {
-      const nombre = document.getElementById('inputSector').value.trim();
-      if (!nombre) { toast('Escribe un nombre para el sector', 'error'); return; }
-
-      const res = await fetch(`${API}/sectores`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+      const nombre = document.getElementById('iSector').value.trim();
+      if (!nombre) { toast('Escribe un nombre', 'error'); return; }
+      const r = await fetch(`${API}/sectores`, {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:auth},
         body: JSON.stringify({ nombre })
       });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast(data.message || 'Ya existe un sector con ese nombre', 'error');
-        return;
-      }
-
-      document.getElementById('inputSector').value = '';
-      toast(`Sector "${nombre}" creado`, 'success');
-      cargarSectores();
+      if (!r.ok) { toast('Ya existe un sector con ese nombre', 'error'); return; }
+      document.getElementById('iSector').value = '';
+      toast(`Sector "${nombre}" creado`, 'success'); cargarSectores();
     }
 
     async function toggleSector(id, activo) {
       await fetch(`${API}/sectores/${id}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        method:'PUT', headers:{'Content-Type':'application/json', Authorization:auth},
         body: JSON.stringify({ activo })
       });
-
-      toast(`Sector ${activo ? 'activado' : 'desactivado'}`, 'success');
-      cargarSectores();
+      toast(`Sector ${activo?'activado':'desactivado'}`, 'success'); cargarSectores();
     }
 
-    // ── Campos de formulario ─────────────────────────────────────────
-
+    // ── Campos ──
     async function cargarCampos() {
-      const res    = await fetch(`${API}/campos/todos`, { headers: { 'Authorization': authHeader } });
-      const campos = await res.json();
-      const lista  = document.getElementById('listaCampos');
-
-      if (campos.length === 0) {
-        lista.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0">No hay campos configurados aún.</p>';
-        return;
-      }
-
-      lista.innerHTML = campos.map(c => `
+      const campos = await fetch(`${API}/campos/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
+      const el = document.getElementById('lCampos');
+      if (!campos.length) { el.innerHTML='<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay campos configurados aún.</p>'; return; }
+      el.innerHTML = campos.map(c => `
         <div class="list-item">
-          <div class="status-dot ${c.activo ? 'dot-active' : 'dot-inactive'}"></div>
-          <div class="list-item-info">
-            <div class="list-item-name">${c.etiqueta}</div>
-            <div class="list-item-sub">
-              Tipo: ${c.tipo} · Orden: ${c.orden} · ${c.requerido ? 'Requerido' : 'Opcional'}
-            </div>
+          <div class="idot ${c.activo?'don':'doff'}"></div>
+          <div class="iinfo">
+            <div class="iname">${c.etiqueta}</div>
+            <div class="isub">Tipo: ${c.tipo} · Orden: ${c.orden} · ${c.requerido?'Requerido':'Opcional'}</div>
           </div>
           <label class="toggle">
-            <input type="checkbox" ${c.activo ? 'checked' : ''}
-              onchange="toggleCampo(${c.id}, this.checked)">
-            <span class="toggle-slider"></span>
+            <input type="checkbox" ${c.activo?'checked':''} onchange="toggleCampo(${c.id},this.checked)">
+            <span class="tslider"></span>
           </label>
         </div>
       `).join('');
     }
 
     async function crearCampo() {
-      const etiqueta = document.getElementById('inputEtiqueta').value.trim();
-      const tipo     = document.getElementById('inputTipo').value;
-      const orden    = parseInt(document.getElementById('inputOrden').value) || 1;
-
-      if (!etiqueta) { toast('Escribe una etiqueta para el campo', 'error'); return; }
-
+      const etiqueta = document.getElementById('iEtiqueta').value.trim();
+      const tipo     = document.getElementById('iTipo').value;
+      const orden    = parseInt(document.getElementById('iOrden').value) || 1;
+      if (!etiqueta) { toast('Escribe una etiqueta', 'error'); return; }
       await fetch(`${API}/campos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ etiqueta, tipo, requerido: true, orden })
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:auth},
+        body: JSON.stringify({ etiqueta, tipo, requerido:true, orden })
       });
-
-      document.getElementById('inputEtiqueta').value = '';
-      document.getElementById('inputOrden').value    = '';
-      toast(`Campo "${etiqueta}" agregado`, 'success');
-      cargarCampos();
+      document.getElementById('iEtiqueta').value = '';
+      document.getElementById('iOrden').value    = '';
+      toast(`Campo "${etiqueta}" agregado`, 'success'); cargarCampos();
     }
 
     async function toggleCampo(id, activo) {
       await fetch(`${API}/campos/${id}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        method:'PUT', headers:{'Content-Type':'application/json', Authorization:auth},
         body: JSON.stringify({ activo })
       });
-
-      toast(`Campo ${activo ? 'activado' : 'desactivado'}`, 'success');
-      cargarCampos();
+      toast(`Campo ${activo?'activado':'desactivado'}`, 'success'); cargarCampos();
     }
 
-    // ── Utilidades ───────────────────────────────────────────────────
-
-    function formatEstado(e) {
-      return { EN_COLA:'En cola', LLAMADO:'Atendiendo', ATENDIDO:'Atendido',
-               CANCELADO:'Cancelado', PENDIENTE:'Pendiente' }[e] || e;
+    // ── Utils ──
+    function fmtE(e) {
+      return {EN_COLA:'En cola',LLAMADO:'Atendiendo',ATENDIDO:'Atendido',CANCELADO:'Cancelado',PENDIENTE:'Pendiente'}[e]||e;
     }
 
-    let toastTimer;
-    function toast(msg, tipo = 'success') {
+    let tt;
+    function toast(msg, tipo='success') {
       const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.className   = `toast ${tipo} show`;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+      el.textContent = msg; el.className = `toast ${tipo} show`;
+      clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 3000);
     }
 </script>
 </body>
