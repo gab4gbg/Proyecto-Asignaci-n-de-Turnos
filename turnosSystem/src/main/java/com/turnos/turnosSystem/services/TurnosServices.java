@@ -25,18 +25,22 @@ public class TurnosServices
     }
 
     //Crear turno
-
     public TurnosModel crearTurno(String nombreUsuario,
                                   String cedulaUsuario,
-                                  TurnosPrioridad prioridad)
-    {
+                                  TurnosPrioridad prioridad,
+                                  Long sectorId) {
         TurnosModel turno = new TurnosModel();
         turno.setNombreUsuario(nombreUsuario);
         turno.setCedulaUsuario(cedulaUsuario);
         turno.setPrioridad(prioridad != null ? prioridad : TurnosPrioridad.NINGUNO);
         turno.setEstado(TurnosEstado.EN_COLA);
         turno.setFechaCreacion(LocalDateTime.now());
-        turno.setNumeroTurno(generarNumeroTurno(null));
+
+        SectorModel sector = sectorRepository.findById(sectorId)
+                .orElseThrow(() -> new RuntimeException("Sector no encontrado: " + sectorId));
+        turno.setSector(sector);
+
+        turno.setNumeroTurno(generarNumeroTurno(sector));
         return turnosRepository.save(turno);
     }
 

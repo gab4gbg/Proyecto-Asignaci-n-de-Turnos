@@ -20,14 +20,15 @@ public class TurnosController
         this.turnosServices = turnosServices;
     }
 
-    // POST Usuario pide un turno
+    // POST Usuario pide un turno — ahora incluye sectorId
     @PostMapping
     public ResponseEntity<TurnosModel> crearTurno(@RequestBody TurnosDto dto)
     {
         TurnosModel turno = turnosServices.crearTurno(
                 dto.getNombreUsuario(),
                 dto.getCedulaUsuario(),
-                dto.getPrioridad()
+                dto.getPrioridad(),
+                dto.getSectorId()
         );
         return ResponseEntity.ok(turno);
     }
