@@ -71,6 +71,49 @@
 
         input::placeholder { color: #9ca3af; }
 
+        /* ── Selector de sector ── */
+        .sector-label {
+          font-size: 13px; font-weight: 600;
+          color: #374151; margin-bottom: 8px;
+        }
+
+        .sector-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 1.1rem;
+        }
+
+        .s-btn {
+          border: 1.5px solid #e5e7eb;
+          background: #f9fafb;
+          border-radius: 10px;
+          padding: 11px 8px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          color: #6b7280;
+        }
+
+        .s-btn:hover { border-color: #93c5fd; background: #eff6ff; color: #2563eb; }
+        .s-btn.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+
+        .sector-loading {
+          font-size: 13px; color: #9ca3af;
+          padding: 10px 0; text-align: center;
+        }
+
+        .sector-none {
+          font-size: 13px; color: #9ca3af;
+          background: #f9fafb; border: 1px dashed #e5e7eb;
+          border-radius: 9px; padding: 12px; text-align: center;
+          margin-bottom: 1.1rem; display: none;
+        }
+
+        /* ── Prioridad ── */
         .prioridad-label {
           font-size: 13px; font-weight: 600;
           color: #374151; margin-bottom: 8px;
@@ -95,15 +138,15 @@
 
         .p-btn:hover { border-color: #93c5fd; background: #eff6ff; }
 
-        .p-btn.active-none       { border-color: #2563eb; background: #eff6ff; }
-        .p-btn.active-embarazo   { border-color: #d97706; background: #fffbeb; }
+        .p-btn.active-none         { border-color: #2563eb; background: #eff6ff; }
+        .p-btn.active-embarazo     { border-color: #d97706; background: #fffbeb; }
         .p-btn.active-discapacidad { border-color: #7c3aed; background: #f5f3ff; }
 
-        .p-icon  { font-size: 20px; display: block; margin-bottom: 4px; }
+        .p-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .p-text { font-size: 12px; font-weight: 600; color: #6b7280; }
 
-        .p-text  { font-size: 12px; font-weight: 600; color: #6b7280; }
-        .p-btn.active-none       .p-text { color: #2563eb; }
-        .p-btn.active-embarazo   .p-text { color: #d97706; }
+        .p-btn.active-none         .p-text { color: #2563eb; }
+        .p-btn.active-embarazo     .p-text { color: #d97706; }
         .p-btn.active-discapacidad .p-text { color: #7c3aed; }
 
         .divider { height: 1px; background: #f3f4f6; margin: 1.4rem 0; }
@@ -115,7 +158,7 @@
           cursor: pointer; transition: background 0.15s;
         }
 
-        .btn:hover   { background: #1d4ed8; }
+        .btn:hover    { background: #1d4ed8; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .spinner {
@@ -136,7 +179,7 @@
         }
         .error.show { display: block; }
 
-        /* Resultado */
+        /* ── Resultado ── */
         .result {
           display: none;
           background: #fff; border: 1px solid #e5e7eb;
@@ -164,8 +207,8 @@
           border-radius: 8px; font-size: 13px;
         }
 
-        .result-row .key   { color: #6b7280; font-weight: 500; }
-        .result-row .val   { color: #111827; font-weight: 600; }
+        .result-row .key { color: #6b7280; font-weight: 500; }
+        .result-row .val { color: #111827; font-weight: 600; }
 
         .p-tag {
           display: inline-block; font-size: 12px; font-weight: 600;
@@ -201,6 +244,7 @@
 
     <!-- Formulario -->
     <div class="card" id="formCard">
+
         <div class="field">
             <label for="nombre">Nombre completo</label>
             <input type="text" id="nombre" placeholder="Ej. María García">
@@ -211,22 +255,27 @@
             <input type="text" id="cedula" placeholder="Ej. 1234567890">
         </div>
 
-        <div class="field">
-            <div class="prioridad-label">¿Requieres atención prioritaria?</div>
-            <div class="prioridad-grid">
-                <button class="p-btn active-none" data-val="NINGUNO" onclick="selP(this)">
-                    <span class="p-icon">👤</span>
-                    <span class="p-text">Ninguna</span>
-                </button>
-                <button class="p-btn" data-val="EMBARAZO" onclick="selP(this)">
-                    <span class="p-icon">🤰</span>
-                    <span class="p-text">Embarazo</span>
-                </button>
-                <button class="p-btn" data-val="DISCAPACIDAD" onclick="selP(this)">
-                    <span class="p-icon">♿</span>
-                    <span class="p-text">Discapacidad</span>
-                </button>
-            </div>
+        <!-- Selector de sector -->
+        <div class="sector-label">¿A qué servicio te diriges?</div>
+        <div class="sector-loading" id="sectorLoading">Cargando sectores...</div>
+        <div class="sector-grid" id="sectorGrid" style="display:none;"></div>
+        <div class="sector-none" id="sectorNone">No hay sectores disponibles por el momento.</div>
+
+        <!-- Prioridad -->
+        <div class="prioridad-label">¿Requieres atención prioritaria?</div>
+        <div class="prioridad-grid">
+            <button class="p-btn active-none" data-val="NINGUNO" onclick="selP(this)">
+                <span class="p-icon">👤</span>
+                <span class="p-text">Ninguna</span>
+            </button>
+            <button class="p-btn" data-val="EMBARAZO" onclick="selP(this)">
+                <span class="p-icon">🤰</span>
+                <span class="p-text">Embarazo</span>
+            </button>
+            <button class="p-btn" data-val="DISCAPACIDAD" onclick="selP(this)">
+                <span class="p-icon">♿</span>
+                <span class="p-text">Discapacidad</span>
+            </button>
         </div>
 
         <div class="divider"></div>
@@ -243,6 +292,9 @@
         <div class="result-rows">
             <div class="result-row"><span class="key">Nombre</span><span class="val" id="resNombre">—</span></div>
             <div class="result-row"><span class="key">Cédula</span><span class="val" id="resCedula">—</span></div>
+            <div class="result-row" id="resSectorRow" style="display:none;">
+                <span class="key">Sector</span><span class="val" id="resSector">—</span>
+            </div>
             <div class="result-row"><span class="key">Estado</span><span class="val" id="resEstado">—</span></div>
         </div>
         <button class="btn-sec" onclick="reiniciar()">Solicitar otro turno</button>
@@ -255,6 +307,50 @@
 <script>
     const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
     let prioridad = 'NINGUNO';
+    let sectorSeleccionado = null; // { id, nombre }
+
+    // Sectores
+
+    async function cargarSectores() {
+      try {
+        const res     = await fetch(`${API}/sectores`);
+        const activos = (await res.json()).filter(s => s.activo);
+        const loading = document.getElementById('sectorLoading');
+        const grid    = document.getElementById('sectorGrid');
+        const none    = document.getElementById('sectorNone');
+
+        loading.style.display = 'none';
+
+        if (!activos.length) {
+          none.style.display = 'block';
+          return;
+        }
+
+        grid.style.display = 'grid';
+        grid.innerHTML = activos.map(s => `
+          <button class="s-btn" data-id="${s.id}" data-nombre="${s.nombre}" onclick="selSector(this)">
+            ${s.nombre}
+          </button>
+        `).join('');
+
+      } catch {
+        document.getElementById('sectorLoading').textContent = 'No se pudieron cargar los sectores.';
+      }
+    }
+
+    function selSector(btn) {
+      // Deseleccionar anterior
+      document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+      // Si se vuelve a hacer clic en el mismo, deselecciona
+      if (sectorSeleccionado && sectorSeleccionado.id === +btn.dataset.id) {
+        sectorSeleccionado = null;
+        return;
+      }
+      btn.classList.add('active');
+      sectorSeleccionado = { id: +btn.dataset.id, nombre: btn.dataset.nombre };
+    }
+
+    // Prioridad
 
     function selP(btn) {
       document.querySelectorAll('.p-btn').forEach(b => b.className = 'p-btn');
@@ -263,6 +359,8 @@
       if (prioridad === 'EMBARAZO')     btn.classList.add('active-embarazo');
       if (prioridad === 'DISCAPACIDAD') btn.classList.add('active-discapacidad');
     }
+
+    // Generar turno
 
     async function generar() {
       const nombre = document.getElementById('nombre').value.trim();
@@ -280,13 +378,26 @@
       err.classList.remove('show');
 
       try {
+        // 1. Crear el turno
         const res = await fetch(`${API}/turnos`, {
-          method: 'POST',
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad })
+          body:    JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad })
         });
         if (!res.ok) throw new Error();
-        mostrar(await res.json());
+        const turno = await res.json();
+
+        // 2. Asignar sector si se eligió uno
+        if (sectorSeleccionado) {
+          await fetch(`${API}/turnos/${turno.id}/sector`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ sectorId: sectorSeleccionado.id })
+          });
+        }
+
+        mostrar(turno);
+
       } catch {
         err.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
         err.classList.add('show');
@@ -298,17 +409,26 @@
 
     function mostrar(t) {
       document.getElementById('formCard').style.display = 'none';
-      document.getElementById('resNumero').textContent = t.numeroTurno;
-      document.getElementById('resNombre').textContent = t.nombreUsuario;
-      document.getElementById('resCedula').textContent = t.cedulaUsuario;
-      document.getElementById('resEstado').textContent = fmtEstado(t.estado);
+      document.getElementById('resNumero').textContent  = t.numeroTurno;
+      document.getElementById('resNombre').textContent  = t.nombreUsuario;
+      document.getElementById('resCedula').textContent  = t.cedulaUsuario;
+      document.getElementById('resEstado').textContent  = fmtEstado(t.estado);
 
+      // Sector en resultado
+      if (sectorSeleccionado) {
+        document.getElementById('resSector').textContent      = sectorSeleccionado.nombre;
+        document.getElementById('resSectorRow').style.display = 'flex';
+      }
+
+      // Badge de prioridad
       const tag = document.getElementById('resPTag');
       if (t.prioridad === 'EMBARAZO') {
         tag.innerHTML = '<div class="p-tag" style="background:#fffbeb;color:#d97706">🤰 Atención prioritaria — Embarazo</div>';
       } else if (t.prioridad === 'DISCAPACIDAD') {
         tag.innerHTML = '<div class="p-tag" style="background:#f5f3ff;color:#7c3aed">♿ Atención prioritaria — Discapacidad</div>';
-      } else { tag.innerHTML = ''; }
+      } else {
+        tag.innerHTML = '';
+      }
 
       document.getElementById('resultCard').classList.add('show');
     }
@@ -319,12 +439,18 @@
     }
 
     function reiniciar() {
-      document.getElementById('nombre').value = '';
-      document.getElementById('cedula').value = '';
-      document.getElementById('formCard').style.display = 'block';
+      document.getElementById('nombre').value       = '';
+      document.getElementById('cedula').value       = '';
+      document.getElementById('formCard').style.display  = 'block';
       document.getElementById('resultCard').classList.remove('show');
+      document.getElementById('resSectorRow').style.display = 'none';
+      sectorSeleccionado = null;
+      document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
       selP(document.querySelector('[data-val="NINGUNO"]'));
     }
+
+    // Init
+    cargarSectores();
 </script>
 </body>
 </html>

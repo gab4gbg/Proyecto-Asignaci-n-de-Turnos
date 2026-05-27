@@ -369,12 +369,12 @@
 
 <script>
 
-    const GOOGLE_CLIENT_ID = '205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent.com';
+    const GOOGLE_CLIENT_ID = '205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent';
 
     const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
     let auth = '', sectores = [];
 
-    // ── Auth credenciales ──────────────────────────────────────────
+    // Auth credenciales
 
     function login() {
       const u = document.getElementById('lUser').value.trim();
@@ -518,7 +518,7 @@
       toast('Estado actualizado', 'success'); cargarTurnos();
     }
 
-    // ── Sectores ───────────────────────────────────────────────────
+    // Sectores
 
     async function cargarSectores() {
       sectores    = await fetch(`${API}/sectores/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
@@ -571,7 +571,7 @@
       toast(`Sector "${nombre}" eliminado`, 'success'); cargarSectores();
     }
 
-    // ── Campos ─────────────────────────────────────────────────────
+    // Campos
 
     async function cargarCampos() {
       const campos = await fetch(`${API}/campos/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
@@ -616,7 +616,7 @@
       toast(`Campo ${activo?'activado':'desactivado'}`, 'success'); cargarCampos();
     }
 
-    // ── Utils ───────────────────────────────────────────────────────
+    // Utils
 
     function fmtE(e) {
       return {EN_COLA:'En cola',LLAMADO:'Atendiendo',ATENDIDO:'Atendido',CANCELADO:'Cancelado',PENDIENTE:'Pendiente'}[e]||e;
