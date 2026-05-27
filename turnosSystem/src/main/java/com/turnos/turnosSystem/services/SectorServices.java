@@ -57,4 +57,10 @@ public class SectorServices
         sector.setNombre(nuevoNombre);
         return sectorRepository.save(sector);
     }
+
+    //eliminar sector
+    public void eliminarSector(Long id)
+    {
+        sectorRepository.deleteById(id);
+    }
 }

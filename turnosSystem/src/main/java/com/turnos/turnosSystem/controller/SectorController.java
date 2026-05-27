@@ -57,4 +57,11 @@ public class SectorController
     {
         return ResponseEntity.ok(sectorService.renombrar(id, body.get("nombre")));
     }
+
+    // DELETE /api/sectores - admin borra
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarSector(@PathVariable Long id) {
+        sectorService.eliminarSector(id);
+        return ResponseEntity.noContent().build();
+    }
 }
