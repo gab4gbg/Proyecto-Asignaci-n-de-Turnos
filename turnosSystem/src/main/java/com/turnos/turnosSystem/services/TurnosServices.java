@@ -28,12 +28,14 @@ public class TurnosServices
 
     public TurnosModel crearTurno(String nombreUsuario,
                                   String cedulaUsuario,
-                                  TurnosPrioridad prioridad)
+                                  TurnosPrioridad prioridad,
+                                  String prioridadEtiqueta)
     {
         TurnosModel turno = new TurnosModel();
         turno.setNombreUsuario(nombreUsuario);
         turno.setCedulaUsuario(cedulaUsuario);
         turno.setPrioridad(prioridad != null ? prioridad : TurnosPrioridad.NINGUNO);
+        turno.setPrioridadEtiqueta(prioridadEtiqueta);
         turno.setEstado(TurnosEstado.EN_COLA);
         turno.setFechaCreacion(LocalDateTime.now());
         turno.setNumeroTurno(generarNumeroTurno(null));

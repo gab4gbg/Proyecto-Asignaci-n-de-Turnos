@@ -27,7 +27,8 @@ public class TurnosController
         TurnosModel turno = turnosServices.crearTurno(
                 dto.getNombreUsuario(),
                 dto.getCedulaUsuario(),
-                dto.getPrioridad()
+                dto.getPrioridad(),
+                dto.getPrioridadEtiqueta()
         );
         return ResponseEntity.ok(turno);
     }

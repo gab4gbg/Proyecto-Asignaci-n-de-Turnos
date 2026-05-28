@@ -42,4 +42,8 @@ public class TurnosModel
 
     @Column(name = "fecha_atencion")
     private LocalDateTime fechaAtencion;
+
+    // Etiqueta libre para prioridad PERSONALIZADO (ej. "Menores de edad")
+    @Column(name = "prioridad_etiqueta")
+    private String prioridadEtiqueta;
 }

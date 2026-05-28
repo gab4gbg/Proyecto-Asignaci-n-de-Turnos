@@ -11,6 +11,7 @@ public class TurnosDto
     private String nombreUsuario;
     private String cedulaUsuario;
     private TurnosPrioridad prioridad;
+    private String prioridadEtiqueta;   // Label personalizado (solo para PERSONALIZADO)
 
     // Para cuando el admin asigna sector
     private Long sectorId;
