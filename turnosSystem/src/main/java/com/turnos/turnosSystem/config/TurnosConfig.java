@@ -36,6 +36,7 @@ public class TurnosConfig {
                         .requestMatchers(HttpMethod.GET,  "/api/campos/todos").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/google").permitAll()
                         .requestMatchers(HttpMethod.PUT,  "/api/turnos/*/sector").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/health").permitAll()
                         .requestMatchers("/api/turnos/*/estado").authenticated()
                         .requestMatchers("/api/sectores/**").authenticated()
                         .requestMatchers("/api/campos/**").authenticated()
