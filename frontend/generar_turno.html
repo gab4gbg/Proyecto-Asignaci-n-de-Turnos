@@ -423,9 +423,15 @@
             err.textContent = `"${c.etiqueta}" debe ser una fecha válida.`;
             err.classList.add('show'); return;
           }
-          if (c.tipo === 'texto' && val.length > 200) {
-            err.textContent = `"${c.etiqueta}" no puede superar 200 caracteres.`;
-            err.classList.add('show'); return;
+          if (c.tipo === 'texto') {
+            if (val.length > 200) {
+              err.textContent = `"${c.etiqueta}" no puede superar 200 caracteres.`;
+              err.classList.add('show'); return;
+            }
+            if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/.test(val)) {
+              err.textContent = `"${c.etiqueta}" debe contener al menos una letra.`;
+              err.classList.add('show'); return;
+            }
           }
         }
       }
@@ -440,14 +446,20 @@
           .map(c => ({ etiqueta: c.etiqueta, valor: document.getElementById(`campo_${c.id}`)?.value.trim() || '' }))
           .filter(cv => cv.valor);
 
-        // Prioridades personalizadas (c_*) se envían como PERSONALIZADO al backend
+        // Prioridades personalizadas (c_*) → PERSONALIZADO en backend + etiqueta para mostrar
         const prioridadBackend = prioridad.startsWith('c_') ? 'PERSONALIZADO' : prioridad;
+        let prioridadEtiqueta = null;
+        if (prioridad.startsWith('c_')) {
+          const cfg = (() => { try { return JSON.parse(localStorage.getItem('prioriConfig') || '{}'); } catch { return {}; } })();
+          const custom = (cfg.custom || []).find(c => c.key === prioridad);
+          if (custom) prioridadEtiqueta = custom.label;
+        }
 
         // 1. Crear el turno
         const res = await fetch(`${API}/turnos`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad: prioridadBackend })
+          body:    JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad: prioridadBackend, prioridadEtiqueta })
         });
         if (!res.ok) throw new Error();
         const turno = await res.json();

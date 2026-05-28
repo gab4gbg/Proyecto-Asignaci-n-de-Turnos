@@ -648,9 +648,13 @@
           <td class="tnum">${t.numeroTurno}</td>
           <td style="font-weight:600">${t.nombreUsuario}</td>
           <td style="color:#9ca3af">${t.cedulaUsuario}</td>
-          <td>${t.prioridad !== 'NINGUNO'
-            ? `<span class="ppill" style="${t.prioridad==='EMBARAZO'?'background:#fffbeb;color:#d97706':'background:#f5f3ff;color:#7c3aed'}">${t.prioridad==='EMBARAZO'?'🤰':'♿'} ${t.prioridad}</span>`
-            : '<span style="color:#d1d5db">—</span>'
+          <td>${t.prioridad==='EMBARAZO'
+            ? '<span class="ppill" style="background:#fffbeb;color:#d97706">🤰 Embarazo</span>'
+            : t.prioridad==='DISCAPACIDAD'
+              ? '<span class="ppill" style="background:#f5f3ff;color:#7c3aed">♿ Discapacidad</span>'
+              : t.prioridad==='PERSONALIZADO'
+                ? `<span class="ppill" style="background:#eff6ff;color:#2563eb">⭐ ${t.prioridadEtiqueta||'Personalizado'}</span>`
+                : '<span style="color:#d1d5db">—</span>'
           }</td>
           <td><span class="epill" style="${eColor[t.estado]||''}">${fmtE(t.estado)}</span></td>
           <td style="color:#9ca3af;font-size:12px">${t.sector?.nombre||'—'}</td>
