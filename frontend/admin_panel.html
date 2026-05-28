@@ -369,7 +369,7 @@
 
 <script>
 
-    const GOOGLE_CLIENT_ID = '205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent';
+    const GOOGLE_CLIENT_ID = '205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent.com';
 
     const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
     let auth = '', sectores = [];
@@ -413,7 +413,7 @@
         })
         .then(() => abrirPanel(nombre, foto, payload.email))
         .catch(e => lErr(e.message));
-}
+    }
 
       // Guardamos el token para enviarlo al backend si fuera necesario
       auth = 'Bearer ' + response.credential;
