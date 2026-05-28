@@ -405,19 +405,22 @@ function loginConGoogle() {
 }
 
     function onGoogleResponse(response) {
-  try {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const nombre  = payload.name;
-    const foto    = payload.picture;
-    const email   = payload.email;
-
-    // Usamos Basic Auth del admin para las llamadas al backend
+  fetch(`${API}/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: response.credential })
+  })
+  .then(r => {
+    if (r.status === 403) throw new Error('Tu cuenta no tiene permiso de administrador.');
+    if (!r.ok) throw new Error('Error al verificar tu cuenta de Google.');
+    return r.json();
+  })
+  .then(data => {
+    // Una vez verificado, usamos Basic Auth para las llamadas siguientes
     auth = 'Basic ' + btoa('admin:admin123');
-
-    abrirPanel(nombre, foto, email);
-  } catch(e) {
-    lErr('Error al procesar la cuenta de Google. Intenta de nuevo.');
-  }
+    abrirPanel(data.nombre, data.foto, data.email);
+  })
+  .catch(e => lErr(e.message));
 }
 
     function abrirPanel(nombre, foto, rol) {
