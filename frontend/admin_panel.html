@@ -400,13 +400,22 @@
   }
 
   function onGoogleResponse(response) {
-    // Decodifica el JWT que devuelve Google (sin librería externa)
     const payload = JSON.parse(atob(response.credential.split('.')[1]));
     const nombre  = payload.name;
     const foto    = payload.picture;
-    const email   = payload.email;
 
-    // Guardamos el token para enviarlo al backend si fuera necesario
+    auth = 'Bearer ' + response.credential;
+
+    fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
+        .then(r => {
+            if (r.status === 401) throw new Error('Tu cuenta de Google no tiene acceso de administrador.');
+            return r.json();
+        })
+        .then(() => abrirPanel(nombre, foto, payload.email))
+        .catch(e => lErr(e.message));
+}
+
+    //guardar token para enviarlo al back si necesario
     auth = 'Bearer ' + response.credential;
 
     // Verificamos contra el backend (endpoint protegido)
