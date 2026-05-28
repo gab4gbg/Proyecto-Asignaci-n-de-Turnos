@@ -402,13 +402,20 @@
 
       // Validar campos dinámicos (requerido + tipo)
       for (const c of camposActivos) {
-        const val = document.getElementById(`campo_${c.id}`)?.value.trim() ?? '';
+        const inp = document.getElementById(`campo_${c.id}`);
+        const val = inp?.value.trim() ?? '';
+        // Para tipo=numero: el browser limpia .value cuando hay texto inválido;
+        // validity.badInput lo detecta correctamente.
+        if (c.tipo === 'numero' && inp?.validity?.badInput) {
+          err.textContent = `"${c.etiqueta}" solo acepta valores numéricos.`;
+          err.classList.add('show'); return;
+        }
         if (c.requerido && !val) {
           err.textContent = `El campo "${c.etiqueta}" es obligatorio.`;
           err.classList.add('show'); return;
         }
         if (val) {
-          if (c.tipo === 'numero' && (isNaN(Number(val)) || val === '')) {
+          if (c.tipo === 'numero' && isNaN(Number(val))) {
             err.textContent = `"${c.etiqueta}" solo acepta valores numéricos.`;
             err.classList.add('show'); return;
           }

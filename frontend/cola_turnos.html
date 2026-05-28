@@ -226,6 +226,8 @@
           tag = '<span class="ptag" style="background:#fffbeb;color:#d97706">🤰 Prioritario</span>';
         else if (t.prioridad === 'DISCAPACIDAD')
           tag = '<span class="ptag" style="background:#f5f3ff;color:#7c3aed">♿ Prioritario</span>';
+        else if (t.prioridad === 'PERSONALIZADO')
+          tag = '<span class="ptag" style="background:#eff6ff;color:#2563eb">⭐ Prioritario</span>';
 
         const el = document.createElement('div');
         el.className = 'turno-item';
