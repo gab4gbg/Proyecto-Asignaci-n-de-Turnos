@@ -371,6 +371,14 @@
 
   const GOOGLE_CLIENT_ID = '205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent.com';
 
+  // ── Correos autorizados como administradores via Google ──
+  // Agrega aquí los correos de los administradores permitidos.
+  // Si la lista está vacía, cualquier cuenta de Google puede intentar entrar.
+  const ADMIN_EMAILS = [
+    // 'tucorreo@gmail.com',
+    // 'otroadmin@dominio.com'
+  ];
+
   const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
   let auth = '', sectores = [];
 
@@ -403,17 +411,24 @@
     const payload = JSON.parse(atob(response.credential.split('.')[1]));
     const nombre  = payload.name;
     const foto    = payload.picture;
+    const email   = payload.email;
+
+    // Verificar lista de administradores antes de llamar al backend
+    if (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(email)) {
+      lErr('Tu cuenta de Google no está autorizada para acceder al panel de administración.');
+      return;
+    }
 
     auth = 'Bearer ' + response.credential;
 
     fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
-        .then(r => {
-            if (r.status === 401) throw new Error('Tu cuenta de Google no tiene acceso de administrador.');
-            return r.json();
-        })
-        .then(() => abrirPanel(nombre, foto, payload.email))
-        .catch(e => lErr(e.message));
-}
+      .then(r => {
+        if (r.status === 401) throw new Error('Tu cuenta de Google no tiene acceso de administrador.');
+        return r.json();
+      })
+      .then(() => abrirPanel(nombre, foto, email))
+      .catch(e => lErr(e.message));
+  }
 
 
   function abrirPanel(nombre, foto, rol) {
@@ -466,11 +481,16 @@
   // ──Turnos
 
   async function cargarTurnos() {
-    const data  = await fetch(`${API}/turnos/cola`, { headers: { Authorization: auth } }).then(r => r.json());
     const tbody = document.getElementById('tbl');
+    let data;
+    try {
+      data = await fetch(`${API}/turnos/cola`, { headers: { Authorization: auth } }).then(r => r.json());
+    } catch {
+      tbody.innerHTML = '<tr><td class="empty-td" colspan="7">No hay valores disponibles</td></tr>'; return;
+    }
 
     if (!data.length) {
-      tbody.innerHTML = '<tr><td class="empty-td" colspan="7">No hay turnos activos</td></tr>'; return;
+      tbody.innerHTML = '<tr><td class="empty-td" colspan="7">No hay valores disponibles</td></tr>'; return;
     }
 
     const eColor = {
@@ -514,10 +534,14 @@
   // Sectores
 
   async function cargarSectores() {
-    sectores    = await fetch(`${API}/sectores/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
-    const el    = document.getElementById('lSectores');
+    const el = document.getElementById('lSectores');
+    try {
+      sectores = await fetch(`${API}/sectores/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
+    } catch {
+      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay valores disponibles.</p>'; return;
+    }
     if (!sectores.length) {
-      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay sectores creados aún.</p>'; return;
+      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay valores disponibles.</p>'; return;
     }
     el.innerHTML = sectores.map(s => `
       <div class="list-item">
@@ -537,7 +561,12 @@
 
   async function crearSector() {
     const nombre = document.getElementById('iSector').value.trim();
-    if (!nombre) { toast('Escribe un nombre', 'error'); return; }
+    if (!nombre) { toast('Escribe un nombre para el sector.', 'error'); return; }
+    if (nombre.length < 2) { toast('El nombre debe tener al menos 2 caracteres.', 'error'); return; }
+    if (nombre.length > 50) { toast('El nombre no puede superar los 50 caracteres.', 'error'); return; }
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\-_.,()/]+$/.test(nombre)) {
+      toast('El nombre contiene caracteres no permitidos.', 'error'); return;
+    }
     const r = await fetch(`${API}/sectores`, {
       method:'POST', headers:{'Content-Type':'application/json', Authorization:auth},
       body: JSON.stringify({ nombre })
@@ -567,10 +596,15 @@
   // Campos
 
   async function cargarCampos() {
-    const campos = await fetch(`${API}/campos/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
-    const el     = document.getElementById('lCampos');
+    const el = document.getElementById('lCampos');
+    let campos;
+    try {
+      campos = await fetch(`${API}/campos/todos`, { headers:{Authorization:auth} }).then(r=>r.json());
+    } catch {
+      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay valores disponibles.</p>'; return;
+    }
     if (!campos.length) {
-      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay campos configurados aún.</p>'; return;
+      el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay valores disponibles.</p>'; return;
     }
     el.innerHTML = campos.map(c => `
       <div class="list-item">
@@ -588,10 +622,16 @@
   }
 
   async function crearCampo() {
-    const etiqueta = document.getElementById('iEtiqueta').value.trim();
-    const tipo     = document.getElementById('iTipo').value;
-    const orden    = parseInt(document.getElementById('iOrden').value) || 1;
-    if (!etiqueta) { toast('Escribe una etiqueta', 'error'); return; }
+    const etiqueta  = document.getElementById('iEtiqueta').value.trim();
+    const tipo      = document.getElementById('iTipo').value;
+    const ordenRaw  = document.getElementById('iOrden').value.trim();
+    const orden     = parseInt(ordenRaw) || 1;
+    if (!etiqueta) { toast('Escribe una etiqueta para el campo.', 'error'); return; }
+    if (etiqueta.length < 2) { toast('La etiqueta debe tener al menos 2 caracteres.', 'error'); return; }
+    if (etiqueta.length > 50) { toast('La etiqueta no puede superar los 50 caracteres.', 'error'); return; }
+    if (ordenRaw && (isNaN(parseInt(ordenRaw)) || parseInt(ordenRaw) < 1)) {
+      toast('El orden debe ser un número entero mayor a 0.', 'error'); return;
+    }
     await fetch(`${API}/campos`, {
       method:'POST', headers:{'Content-Type':'application/json', Authorization:auth},
       body: JSON.stringify({ etiqueta, tipo, requerido:true, orden })
