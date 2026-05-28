@@ -4,52 +4,55 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.turnos.turnosSystem.dto.GoogleAuthDto;
+import com.turnos.turnosSystem.dto.GoogleAuthResponseDto;
+import com.turnos.turnosSystem.repository.AdminRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final String CLIENT_ID =
-            "205021739328-dl841da3vg0s62mgi90cv355ovh9emvh.apps.googleusercontent.com";
+    private final AdminRepository adminRepository;
 
-    // Emails autorizados como administradores
-    private static final List<String> ADMINS_AUTORIZADOS = List.of(
-            "tucorreo@gmail.com"  // ← reemplaza con el email real del admin
-    );
+    @Value("${google.client-id}")
+    private String googleClientId;
+
+    public AuthController(AdminRepository adminRepository) {
+        this.adminRepository = adminRepository;
+    }
 
     @PostMapping("/google")
-    public ResponseEntity<?> verificarGoogle(@RequestBody Map<String, String> body) {
-        String token = body.get("token");
-        if (token == null) return ResponseEntity.badRequest().build();
-
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleAuthDto body) {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(), GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(CLIENT_ID))
+                    .setAudience(Collections.singletonList(googleClientId))
                     .build();
 
-            GoogleIdToken idToken = verifier.verify(token);
-            if (idToken == null) return ResponseEntity.status(401).body("Token inválido");
+            GoogleIdToken idToken = verifier.verify(body.getToken());
 
-            String email = idToken.getPayload().getEmail();
-
-            if (!ADMINS_AUTORIZADOS.contains(email)) {
-                return ResponseEntity.status(403).body("No tienes permiso de administrador");
+            if (idToken == null) {
+                return ResponseEntity.status(401).body("Token inválido.");
             }
 
-            return ResponseEntity.ok(Map.of(
-                    "email", email,
-                    "nombre", (String) idToken.getPayload().get("name"),
-                    "foto",   (String) idToken.getPayload().get("picture")
-            ));
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email  = payload.getEmail();
+            String nombre = (String) payload.get("name");
+            String foto   = (String) payload.get("picture");
+
+            if (!adminRepository.existsByEmail(email)) {
+                return ResponseEntity.status(403).body("Tu cuenta no tiene permiso de administrador.");
+            }
+
+            return ResponseEntity.ok(new GoogleAuthResponseDto(nombre, email, foto));
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Error al verificar token");
+            return ResponseEntity.status(500).body("Error al verificar el token de Google.");
         }
     }
 }
