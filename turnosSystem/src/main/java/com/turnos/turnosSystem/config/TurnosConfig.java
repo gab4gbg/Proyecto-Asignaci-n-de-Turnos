@@ -42,7 +42,7 @@ public class TurnosConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:8080",
                 "http://localhost:5500",
-                "https://proyecto-asignaci-n-de-turnos-git-frontend-gab4gbgs-projects.vercel.app/"
+                "https://proyecto-asignaci-n-de-turnos-git-frontend-gab4gbgs-projects.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
