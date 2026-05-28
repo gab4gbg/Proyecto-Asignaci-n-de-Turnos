@@ -58,4 +58,12 @@ public class CampoFormularioServices
         campo.setOrden(nuevoOrden);
         return campoRepository.save(campo);
     }
+
+    // Admin elimina un campo
+    public void eliminarCampo(Long id) {
+        if (!campoRepository.existsById(id)) {
+            throw new RuntimeException("Campo no encontrado: " + id);
+        }
+        campoRepository.deleteById(id);
+    }
 }

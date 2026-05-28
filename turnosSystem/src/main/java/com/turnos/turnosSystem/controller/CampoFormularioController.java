@@ -62,4 +62,12 @@ public class CampoFormularioController
     {
         return ResponseEntity.ok(campoService.reordenar(id, body.get("orden")));
     }
+
+    // DELETE /api/campos/{id} — Admin elimina campo
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarCampo(@PathVariable Long id)
+    {
+        campoService.eliminarCampo(id);
+        return ResponseEntity.noContent().build();
+    }
 }
