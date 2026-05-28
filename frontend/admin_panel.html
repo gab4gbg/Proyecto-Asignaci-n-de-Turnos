@@ -415,22 +415,6 @@
         .catch(e => lErr(e.message));
 }
 
-    //guardar token para enviarlo al back si necesario
-    auth = 'Bearer ' + response.credential;
-
-    // Verificamos contra el backend (endpoint protegido)
-    fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
-      .then(r => {
-        // Si el backend no valida Google JWT, igual abrimos el panel
-        // ya que la verificación real debe hacerse en el backend
-        abrirPanel(nombre, foto, email);
-      })
-      .catch(() => {
-        // Aun si falla la verificación extra, mostramos el panel
-        // Ajusta esto según tu implementación de seguridad backend
-        abrirPanel(nombre, foto, email);
-      });
-  }
 
   function abrirPanel(nombre, foto, rol) {
     document.getElementById('loginOverlay').classList.add('hidden');
