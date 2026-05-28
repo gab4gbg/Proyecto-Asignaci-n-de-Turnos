@@ -260,7 +260,7 @@
 </head>
 <body>
 
-<!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
+<!--LOGIN-->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-card">
         <div class="login-icon">🔐</div>
@@ -298,7 +298,7 @@
     </div>
 </div>
 
-<!-- ══ PANEL PRINCIPAL ══════════════════════════════════════════════ -->
+<!--PANEL PRINCIPAL-->
 <div class="panel-wrap" id="mainPanel" style="display:none">
 
     <div class="topbar">
@@ -387,7 +387,7 @@
         .catch(e => lErr(e.message));
     }
 
-    // ── Auth Google ────────────────────────────────────────────────
+    //Auth Google
 
     function loginConGoogle() {
       // Inicializa el cliente de Google y lanza el popup
@@ -400,36 +400,19 @@
     }
 
     function onGoogleResponse(response) {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const nombre  = payload.name;
-    const foto    = payload.picture;
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      const nombre  = payload.name;
+      const foto    = payload.picture;
 
-    auth = 'Bearer ' + response.credential;
+      auth = 'Bearer ' + response.credential;
 
-    fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
+      fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
         .then(r => {
-            if (r.status === 401) throw new Error('Tu cuenta de Google no tiene acceso de administrador.');
-            return r.json();
+          if (r.status === 401) throw new Error('Tu cuenta de Google no tiene acceso de administrador.');
+          return r.json();
         })
         .then(() => abrirPanel(nombre, foto, payload.email))
         .catch(e => lErr(e.message));
-    }
-
-      // Guardamos el token para enviarlo al backend si fuera necesario
-      auth = 'Bearer ' + response.credential;
-
-      // Verificamos contra el backend (endpoint protegido)
-      fetch(`${API}/sectores/todos`, { headers: { Authorization: auth } })
-        .then(r => {
-          // Si el backend no valida Google JWT, igual abrimos el panel
-          // ya que la verificación real debe hacerse en el backend
-          abrirPanel(nombre, foto, email);
-        })
-        .catch(() => {
-          // Aun si falla la verificación extra, mostramos el panel
-          // Ajusta esto según tu implementación de seguridad backend
-          abrirPanel(nombre, foto, email);
-        });
     }
 
     function abrirPanel(nombre, foto, rol) {
@@ -468,7 +451,7 @@
       document.getElementById('lPass').addEventListener('keydown', e => { if (e.key==='Enter') login(); })
     );
 
-    // ── Tabs ───────────────────────────────────────────────────────
+    // Tabs
 
     function goTab(name, btn) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -479,7 +462,7 @@
 
     function cargarTodo() { cargarTurnos(); cargarSectores(); cargarCampos(); }
 
-    // ── Turnos ─────────────────────────────────────────────────────
+    // ──Turnos
 
     async function cargarTurnos() {
       const data  = await fetch(`${API}/turnos/cola`, { headers: { Authorization: auth } }).then(r => r.json());
@@ -625,7 +608,7 @@
       toast(`Campo ${activo?'activado':'desactivado'}`, 'success'); cargarCampos();
     }
 
-    // Utils
+    //Utils
 
     function fmtE(e) {
       return {EN_COLA:'En cola',LLAMADO:'Atendiendo',ATENDIDO:'Atendido',CANCELADO:'Cancelado',PENDIENTE:'Pendiente'}[e]||e;
