@@ -349,9 +349,20 @@
     <!-- Prioridades -->
     <div class="panel" id="panel-prioridades">
       <div class="create-box" style="margin-bottom:1rem">
-        <div class="create-title">Factores de atención prioritaria</div>
+        <div class="create-title">Agregar factor de prioridad</div>
         <p style="font-size:13px;color:#6b7280;margin-bottom:1rem">
-          Activa o desactiva qué opciones de prioridad se muestran en el formulario público de turnos.
+          Crea factores personalizados que aparecerán en el formulario público de turnos.
+        </p>
+        <div class="create-row">
+          <input type="text" id="iIcono" placeholder="Emoji (ej. 👴)" style="max-width:90px">
+          <input type="text" id="iLabelPriori" placeholder="Etiqueta (ej. Adulto Mayor)">
+          <button class="btn" onclick="crearPrioridad()">Agregar</button>
+        </div>
+      </div>
+      <div class="create-box">
+        <div class="create-title">Factores activos</div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:1rem">
+          Activa o desactiva qué opciones se muestran en el formulario. Los personalizados pueden eliminarse.
         </p>
         <div class="item-list" id="lPrioridades"></div>
       </div>
@@ -532,9 +543,9 @@
 
     // ── Prioridades ──────────────────────────────────────────────────────────
 
-    const PRIORIDADES_DEF = [
-      { key: 'EMBARAZO',     label: 'Embarazo',      icon: '🤰', color: '#d97706' },
-      { key: 'DISCAPACIDAD', label: 'Discapacidad',  icon: '♿', color: '#7c3aed' }
+    const PRIORIDADES_BASE = [
+      { key: 'EMBARAZO',     label: 'Embarazo',     icon: '🤰', color: '#d97706', custom: false },
+      { key: 'DISCAPACIDAD', label: 'Discapacidad', icon: '♿', color: '#7c3aed', custom: false }
     ];
 
     function getPrioriConfig() {
@@ -543,30 +554,70 @@
 
     function cargarPrioridades() {
       const config = getPrioriConfig();
+      const customs = config.custom || [];
+      const todas = [
+        ...PRIORIDADES_BASE.map(p => ({ ...p, activo: config[p.key] !== false })),
+        ...customs.map(p => ({ ...p, activo: p.enabled !== false, custom: true }))
+      ];
       const el = document.getElementById('lPrioridades');
-      el.innerHTML = PRIORIDADES_DEF.map(p => {
-        const activo = config[p.key] !== false; // activo por defecto
-        return `
-          <div class="list-item">
-            <div class="idot" style="background:${activo ? p.color : '#d1d5db'}"></div>
-            <div class="iinfo">
-              <div class="iname">${p.icon} ${p.label}</div>
-              <div class="isub">${activo ? 'Visible en el formulario' : 'Oculto en el formulario'}</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" ${activo ? 'checked' : ''} onchange="togglePrioridad('${p.key}', this.checked)">
-              <span class="tslider"></span>
-            </label>
-          </div>`;
-      }).join('');
+      if (!todas.length) {
+        el.innerHTML = '<p style="font-size:13px;color:#9ca3af;padding:.5rem 0">No hay factores configurados.</p>';
+        return;
+      }
+      el.innerHTML = todas.map(p => `
+        <div class="list-item">
+          <div class="idot" style="background:${p.activo ? (p.color || '#2563eb') : '#d1d5db'}"></div>
+          <div class="iinfo">
+            <div class="iname">${p.icon} ${p.label}</div>
+            <div class="isub">${p.activo ? 'Visible en el formulario' : 'Oculto en el formulario'}${p.custom ? ' · Personalizado' : ''}</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" ${p.activo ? 'checked' : ''} onchange="togglePrioridad('${p.key}', this.checked, ${!!p.custom})">
+            <span class="tslider"></span>
+          </label>
+          ${p.custom ? `<button class="btn-del" onclick="eliminarPrioridad('${p.key}')">Eliminar</button>` : ''}
+        </div>`).join('');
     }
 
-    function togglePrioridad(key, activo) {
+    function togglePrioridad(key, activo, isCustom) {
       const config = getPrioriConfig();
-      config[key] = activo;
+      if (isCustom) {
+        const customs = config.custom || [];
+        const idx = customs.findIndex(c => c.key === key);
+        if (idx !== -1) customs[idx].enabled = activo;
+        config.custom = customs;
+      } else {
+        config[key] = activo;
+      }
       localStorage.setItem('prioriConfig', JSON.stringify(config));
       cargarPrioridades();
       toast(`Prioridad "${key}" ${activo ? 'activada' : 'desactivada'}`, 'success');
+    }
+
+    function eliminarPrioridad(key) {
+      if (!confirm('¿Eliminar este factor de prioridad personalizado?')) return;
+      const config = getPrioriConfig();
+      config.custom = (config.custom || []).filter(c => c.key !== key);
+      localStorage.setItem('prioriConfig', JSON.stringify(config));
+      cargarPrioridades();
+      toast('Factor eliminado', 'success');
+    }
+
+    function crearPrioridad() {
+      const icon  = document.getElementById('iIcono').value.trim();
+      const label = document.getElementById('iLabelPriori').value.trim();
+      if (!label) { toast('Escribe una etiqueta para el factor.', 'error'); return; }
+      if (label.length < 2)  { toast('La etiqueta debe tener al menos 2 caracteres.', 'error'); return; }
+      if (label.length > 40) { toast('La etiqueta no puede superar 40 caracteres.', 'error'); return; }
+      const config  = getPrioriConfig();
+      const customs = config.custom || [];
+      customs.push({ key: 'c_' + Date.now(), label, icon: icon || '⭐', color: '#2563eb', enabled: true });
+      config.custom = customs;
+      localStorage.setItem('prioriConfig', JSON.stringify(config));
+      document.getElementById('iIcono').value      = '';
+      document.getElementById('iLabelPriori').value = '';
+      cargarPrioridades();
+      toast(`Factor "${label}" creado`, 'success');
     }
 
     // ──Turnos
@@ -708,6 +759,7 @@
             <input type="checkbox" ${c.activo?'checked':''} onchange="toggleCampo(${c.id},this.checked)">
             <span class="tslider"></span>
           </label>
+          <button class="btn-del" onclick="eliminarCampo(${c.id},'${c.etiqueta.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Eliminar</button>
         </div>
       `).join('');
     }
@@ -738,6 +790,16 @@
         body: JSON.stringify({ activo })
       });
       toast(`Campo ${activo?'activado':'desactivado'}`, 'success'); cargarCampos();
+    }
+
+    async function eliminarCampo(id, etiqueta) {
+      if (!confirm(`¿Eliminar el campo "${etiqueta}"? Esta acción no se puede deshacer.`)) return;
+      const r = await fetch(`${API}/campos/${id}`, {
+        method: 'DELETE', headers: { Authorization: auth }
+      });
+      if (!r.ok) { toast('No se pudo eliminar el campo', 'error'); return; }
+      toast(`Campo "${etiqueta}" eliminado`, 'success');
+      cargarCampos();
     }
 
     //Utils

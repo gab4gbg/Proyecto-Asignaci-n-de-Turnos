@@ -138,16 +138,18 @@
 
         .p-btn:hover { border-color: #93c5fd; background: #eff6ff; }
 
-        .p-btn.active-none         { border-color: #2563eb; background: #eff6ff; }
-        .p-btn.active-embarazo     { border-color: #d97706; background: #fffbeb; }
-        .p-btn.active-discapacidad { border-color: #7c3aed; background: #f5f3ff; }
+        .p-btn.active-none           { border-color: #2563eb; background: #eff6ff; }
+        .p-btn.active-embarazo       { border-color: #d97706; background: #fffbeb; }
+        .p-btn.active-discapacidad   { border-color: #7c3aed; background: #f5f3ff; }
+        .p-btn.active-personalizado  { border-color: #2563eb; background: #eff6ff; }
 
         .p-icon { font-size: 20px; display: block; margin-bottom: 4px; }
         .p-text { font-size: 12px; font-weight: 600; color: #6b7280; }
 
-        .p-btn.active-none         .p-text { color: #2563eb; }
-        .p-btn.active-embarazo     .p-text { color: #d97706; }
-        .p-btn.active-discapacidad .p-text { color: #7c3aed; }
+        .p-btn.active-none           .p-text { color: #2563eb; }
+        .p-btn.active-embarazo       .p-text { color: #d97706; }
+        .p-btn.active-discapacidad   .p-text { color: #7c3aed; }
+        .p-btn.active-personalizado  .p-text { color: #2563eb; }
 
         .divider { height: 1px; background: #f3f4f6; margin: 1.4rem 0; }
 
@@ -285,6 +287,8 @@
             <div class="result-row" id="resSectorRow" style="display:none;">
                 <span class="key">Sector</span><span class="val" id="resSector">—</span>
             </div>
+            <!-- Filas de campos dinámicos (se inyectan al mostrar resultado) -->
+            <div id="resCamposExtra"></div>
             <div class="result-row"><span class="key">Estado</span><span class="val" id="resEstado">—</span></div>
         </div>
         <button class="btn-sec" onclick="reiniciar()">Solicitar otro turno</button>
@@ -396,12 +400,24 @@
         err.classList.add('show'); return;
       }
 
-      // Validar campos dinámicos requeridos
+      // Validar campos dinámicos (requerido + tipo)
       for (const c of camposActivos) {
-        if (c.requerido) {
-          const val = document.getElementById(`campo_${c.id}`)?.value.trim();
-          if (!val) {
-            err.textContent = `El campo "${c.etiqueta}" es obligatorio.`;
+        const val = document.getElementById(`campo_${c.id}`)?.value.trim() ?? '';
+        if (c.requerido && !val) {
+          err.textContent = `El campo "${c.etiqueta}" es obligatorio.`;
+          err.classList.add('show'); return;
+        }
+        if (val) {
+          if (c.tipo === 'numero' && (isNaN(Number(val)) || val === '')) {
+            err.textContent = `"${c.etiqueta}" solo acepta valores numéricos.`;
+            err.classList.add('show'); return;
+          }
+          if (c.tipo === 'fecha' && isNaN(Date.parse(val))) {
+            err.textContent = `"${c.etiqueta}" debe ser una fecha válida.`;
+            err.classList.add('show'); return;
+          }
+          if (c.tipo === 'texto' && val.length > 200) {
+            err.textContent = `"${c.etiqueta}" no puede superar 200 caracteres.`;
             err.classList.add('show'); return;
           }
         }
@@ -412,11 +428,19 @@
       err.classList.remove('show');
 
       try {
+        // Capturar valores de campos dinámicos antes de limpiar
+        const campoValues = camposActivos
+          .map(c => ({ etiqueta: c.etiqueta, valor: document.getElementById(`campo_${c.id}`)?.value.trim() || '' }))
+          .filter(cv => cv.valor);
+
+        // Prioridades personalizadas (c_*) se envían como PERSONALIZADO al backend
+        const prioridadBackend = prioridad.startsWith('c_') ? 'PERSONALIZADO' : prioridad;
+
         // 1. Crear el turno
         const res = await fetch(`${API}/turnos`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad })
+          body:    JSON.stringify({ nombreUsuario: nombre, cedulaUsuario: cedula, prioridad: prioridadBackend })
         });
         if (!res.ok) throw new Error();
         const turno = await res.json();
@@ -430,7 +454,7 @@
           });
         }
 
-        mostrar(turno);
+        mostrar(turno, campoValues);
 
       } catch {
         err.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
@@ -441,7 +465,7 @@
       }
     }
 
-    function mostrar(t) {
+    function mostrar(t, campoValues = []) {
       document.getElementById('formCard').style.display = 'none';
       document.getElementById('resNumero').textContent  = t.numeroTurno;
       document.getElementById('resNombre').textContent  = t.nombreUsuario;
@@ -454,12 +478,28 @@
         document.getElementById('resSectorRow').style.display = 'flex';
       }
 
+      // Campos dinámicos en resultado
+      const extraRows = document.getElementById('resCamposExtra');
+      if (extraRows) {
+        extraRows.innerHTML = campoValues.map(cv => `
+          <div class="result-row">
+            <span class="key">${cv.etiqueta}</span>
+            <span class="val">${cv.valor}</span>
+          </div>`).join('');
+      }
+
       // Badge de prioridad
       const tag = document.getElementById('resPTag');
       if (t.prioridad === 'EMBARAZO') {
         tag.innerHTML = '<div class="p-tag" style="background:#fffbeb;color:#d97706">🤰 Atención prioritaria — Embarazo</div>';
       } else if (t.prioridad === 'DISCAPACIDAD') {
         tag.innerHTML = '<div class="p-tag" style="background:#f5f3ff;color:#7c3aed">♿ Atención prioritaria — Discapacidad</div>';
+      } else if (t.prioridad === 'PERSONALIZADO') {
+        // Buscar la etiqueta en config local
+        const cfg = (() => { try { return JSON.parse(localStorage.getItem('prioriConfig') || '{}'); } catch { return {}; } })();
+        const custom = (cfg.custom || []).find(c => c.key === prioridad);
+        const lbl = custom ? `${custom.icon} Atención prioritaria — ${custom.label}` : '⭐ Atención prioritaria';
+        tag.innerHTML = `<div class="p-tag" style="background:#eff6ff;color:#2563eb">${lbl}</div>`;
       } else {
         tag.innerHTML = '';
       }
@@ -473,8 +513,15 @@
     }
 
     function reiniciar() {
-      document.getElementById('nombre').value       = '';
-      document.getElementById('cedula').value       = '';
+      document.getElementById('nombre').value = '';
+      document.getElementById('cedula').value = '';
+      // Limpiar campos dinámicos
+      camposActivos.forEach(c => {
+        const inp = document.getElementById(`campo_${c.id}`);
+        if (inp) inp.value = '';
+      });
+      const extraRows = document.getElementById('resCamposExtra');
+      if (extraRows) extraRows.innerHTML = '';
       document.getElementById('formCard').style.display  = 'block';
       document.getElementById('resultCard').classList.remove('show');
       document.getElementById('resSectorRow').style.display = 'none';
@@ -483,16 +530,19 @@
       selP(document.querySelector('[data-val="NINGUNO"]'));
     }
 
-    // Prioridades dinámicas según config del admin
+    // Prioridades dinámicas según config del admin (base + personalizadas)
     function renderPrioridades() {
       const config = (() => { try { return JSON.parse(localStorage.getItem('prioriConfig') || '{}'); } catch { return {}; } })();
-      const todas = [
-        { key: 'NINGUNO',      icon: '👤', label: 'Ninguna',       cls: 'active-none',         show: true },
-        { key: 'EMBARAZO',     icon: '🤰', label: 'Embarazo',      cls: 'active-embarazo',     show: config['EMBARAZO'] !== false },
-        { key: 'DISCAPACIDAD', icon: '♿', label: 'Discapacidad',  cls: 'active-discapacidad', show: config['DISCAPACIDAD'] !== false }
+      const base = [
+        { key: 'NINGUNO',      icon: '👤', label: 'Ninguna',      cls: 'active-none',         show: true },
+        { key: 'EMBARAZO',     icon: '🤰', label: 'Embarazo',     cls: 'active-embarazo',     show: config['EMBARAZO'] !== false },
+        { key: 'DISCAPACIDAD', icon: '♿', label: 'Discapacidad', cls: 'active-discapacidad', show: config['DISCAPACIDAD'] !== false }
       ];
+      const custom = (config.custom || [])
+        .filter(c => c.enabled !== false)
+        .map(c => ({ key: c.key, icon: c.icon || '⭐', label: c.label, cls: 'active-personalizado', show: true }));
       const grid = document.getElementById('prioridadGrid');
-      grid.innerHTML = todas.filter(p => p.show).map(p =>
+      grid.innerHTML = [...base, ...custom].filter(p => p.show).map(p =>
         `<button class="p-btn ${p.key === 'NINGUNO' ? 'active-none' : ''}" data-val="${p.key}" data-cls="${p.cls}" onclick="selP(this)">
           <span class="p-icon">${p.icon}</span>
           <span class="p-text">${p.label}</span>
