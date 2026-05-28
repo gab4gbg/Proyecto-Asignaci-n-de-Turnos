@@ -255,28 +255,18 @@
             <input type="text" id="cedula" placeholder="Ej. 1234567890">
         </div>
 
+        <!-- Campos dinámicos del admin -->
+        <div id="camposDinamicos"></div>
+
         <!-- Selector de sector -->
         <div class="sector-label">¿A qué servicio te diriges?</div>
         <div class="sector-loading" id="sectorLoading">Cargando sectores...</div>
         <div class="sector-grid" id="sectorGrid" style="display:none;"></div>
         <div class="sector-none" id="sectorNone">No hay sectores disponibles por el momento.</div>
 
-        <!-- Prioridad -->
+        <!-- Prioridad (se renderiza dinámicamente según config del admin) -->
         <div class="prioridad-label">¿Requieres atención prioritaria?</div>
-        <div class="prioridad-grid">
-            <button class="p-btn active-none" data-val="NINGUNO" onclick="selP(this)">
-                <span class="p-icon">👤</span>
-                <span class="p-text">Ninguna</span>
-            </button>
-            <button class="p-btn" data-val="EMBARAZO" onclick="selP(this)">
-                <span class="p-icon">🤰</span>
-                <span class="p-text">Embarazo</span>
-            </button>
-            <button class="p-btn" data-val="DISCAPACIDAD" onclick="selP(this)">
-                <span class="p-icon">♿</span>
-                <span class="p-text">Discapacidad</span>
-            </button>
-        </div>
+        <div class="prioridad-grid" id="prioridadGrid"></div>
 
         <div class="divider"></div>
 
@@ -307,7 +297,30 @@
 <script>
     const API = 'https://proyecto-asignaci-n-de-turnos.onrender.com/api';
     let prioridad = 'NINGUNO';
-    let sectorSeleccionado = null; // { id, nombre }
+    let sectorSeleccionado = null;
+    let camposActivos = [];
+
+    // Campos dinámicos del formulario
+
+    async function cargarCampos() {
+      try {
+        const res = await fetch(`${API}/campos`);
+        const todos = await res.json();
+        camposActivos = todos.filter(c => c.activo).sort((a, b) => a.orden - b.orden);
+        const cont = document.getElementById('camposDinamicos');
+        if (!camposActivos.length) { cont.innerHTML = ''; return; }
+        cont.innerHTML = camposActivos.map(c => {
+          const inputType = c.tipo === 'numero' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text';
+          return `
+            <div class="field">
+              <label>${c.etiqueta}${c.requerido ? ' <span style="color:#dc2626">*</span>' : ''}</label>
+              <input type="${inputType}" id="campo_${c.id}" placeholder="${c.etiqueta}"
+                style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:9px;
+                       padding:11px 14px;font-family:inherit;font-size:15px;color:#111827;outline:none;">
+            </div>`;
+        }).join('');
+      } catch { /* si falla, no muestra campos extra */ }
+    }
 
     // Sectores
 
@@ -355,9 +368,7 @@
     function selP(btn) {
       document.querySelectorAll('.p-btn').forEach(b => b.className = 'p-btn');
       prioridad = btn.dataset.val;
-      if (prioridad === 'NINGUNO')      btn.classList.add('active-none');
-      if (prioridad === 'EMBARAZO')     btn.classList.add('active-embarazo');
-      if (prioridad === 'DISCAPACIDAD') btn.classList.add('active-discapacidad');
+      btn.classList.add(btn.dataset.cls || 'active-none');
     }
 
     // Generar turno
@@ -383,6 +394,17 @@
       if (!/^\d{6,12}$/.test(cedula)) {
         err.textContent = 'La cédula debe contener entre 6 y 12 dígitos numéricos.';
         err.classList.add('show'); return;
+      }
+
+      // Validar campos dinámicos requeridos
+      for (const c of camposActivos) {
+        if (c.requerido) {
+          const val = document.getElementById(`campo_${c.id}`)?.value.trim();
+          if (!val) {
+            err.textContent = `El campo "${c.etiqueta}" es obligatorio.`;
+            err.classList.add('show'); return;
+          }
+        }
       }
 
       btn.disabled = true;
@@ -461,8 +483,27 @@
       selP(document.querySelector('[data-val="NINGUNO"]'));
     }
 
+    // Prioridades dinámicas según config del admin
+    function renderPrioridades() {
+      const config = (() => { try { return JSON.parse(localStorage.getItem('prioriConfig') || '{}'); } catch { return {}; } })();
+      const todas = [
+        { key: 'NINGUNO',      icon: '👤', label: 'Ninguna',       cls: 'active-none',         show: true },
+        { key: 'EMBARAZO',     icon: '🤰', label: 'Embarazo',      cls: 'active-embarazo',     show: config['EMBARAZO'] !== false },
+        { key: 'DISCAPACIDAD', icon: '♿', label: 'Discapacidad',  cls: 'active-discapacidad', show: config['DISCAPACIDAD'] !== false }
+      ];
+      const grid = document.getElementById('prioridadGrid');
+      grid.innerHTML = todas.filter(p => p.show).map(p =>
+        `<button class="p-btn ${p.key === 'NINGUNO' ? 'active-none' : ''}" data-val="${p.key}" data-cls="${p.cls}" onclick="selP(this)">
+          <span class="p-icon">${p.icon}</span>
+          <span class="p-text">${p.label}</span>
+        </button>`
+      ).join('');
+    }
+
     // Init
     cargarSectores();
+    cargarCampos();
+    renderPrioridades();
 </script>
 </body>
 </html>

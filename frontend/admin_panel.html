@@ -316,6 +316,7 @@
         <button class="tab active" onclick="goTab('turnos',this)">Turnos</button>
         <button class="tab" onclick="goTab('sectores',this)">Sectores</button>
         <button class="tab" onclick="goTab('campos',this)">Campos del formulario</button>
+        <button class="tab" onclick="goTab('prioridades',this)">Prioridades</button>
     </div>
 
     <!-- Turnos -->
@@ -343,6 +344,17 @@
             </div>
         </div>
         <div class="item-list" id="lSectores"></div>
+    </div>
+
+    <!-- Prioridades -->
+    <div class="panel" id="panel-prioridades">
+      <div class="create-box" style="margin-bottom:1rem">
+        <div class="create-title">Factores de atención prioritaria</div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:1rem">
+          Activa o desactiva qué opciones de prioridad se muestran en el formulario público de turnos.
+        </p>
+        <div class="item-list" id="lPrioridades"></div>
+      </div>
     </div>
 
     <!-- Campos -->
@@ -516,7 +528,46 @@
       document.getElementById(`panel-${name}`).classList.add('active');
     }
 
-    function cargarTodo() { cargarTurnos(); cargarSectores(); cargarCampos(); }
+    function cargarTodo() { cargarTurnos(); cargarSectores(); cargarCampos(); cargarPrioridades(); }
+
+    // ── Prioridades ──────────────────────────────────────────────────────────
+
+    const PRIORIDADES_DEF = [
+      { key: 'EMBARAZO',     label: 'Embarazo',      icon: '🤰', color: '#d97706' },
+      { key: 'DISCAPACIDAD', label: 'Discapacidad',  icon: '♿', color: '#7c3aed' }
+    ];
+
+    function getPrioriConfig() {
+      try { return JSON.parse(localStorage.getItem('prioriConfig') || '{}'); } catch { return {}; }
+    }
+
+    function cargarPrioridades() {
+      const config = getPrioriConfig();
+      const el = document.getElementById('lPrioridades');
+      el.innerHTML = PRIORIDADES_DEF.map(p => {
+        const activo = config[p.key] !== false; // activo por defecto
+        return `
+          <div class="list-item">
+            <div class="idot" style="background:${activo ? p.color : '#d1d5db'}"></div>
+            <div class="iinfo">
+              <div class="iname">${p.icon} ${p.label}</div>
+              <div class="isub">${activo ? 'Visible en el formulario' : 'Oculto en el formulario'}</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" ${activo ? 'checked' : ''} onchange="togglePrioridad('${p.key}', this.checked)">
+              <span class="tslider"></span>
+            </label>
+          </div>`;
+      }).join('');
+    }
+
+    function togglePrioridad(key, activo) {
+      const config = getPrioriConfig();
+      config[key] = activo;
+      localStorage.setItem('prioriConfig', JSON.stringify(config));
+      cargarPrioridades();
+      toast(`Prioridad "${key}" ${activo ? 'activada' : 'desactivada'}`, 'success');
+    }
 
     // ──Turnos
 

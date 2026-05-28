@@ -195,7 +195,13 @@
 
     function render(cola) {
       const llamado = cola.find(t => t.estado === 'LLAMADO');
-      const espera  = cola.filter(t => t.estado === 'EN_COLA');
+      // Prioritarios (EMBARAZO / DISCAPACIDAD) van primero
+      const espera  = cola
+        .filter(t => t.estado === 'EN_COLA')
+        .sort((a, b) => {
+          const p = v => v.prioridad !== 'NINGUNO' ? 0 : 1;
+          return p(a) - p(b);
+        });
       const atDiv   = document.getElementById('atDiv');
 
       if (llamado) {
