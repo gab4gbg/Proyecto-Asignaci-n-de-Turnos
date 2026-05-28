@@ -372,6 +372,18 @@
         err.textContent = 'Por favor completa tu nombre y número de cédula.';
         err.classList.add('show'); return;
       }
+      if (nombre.length < 2 || nombre.length > 80) {
+        err.textContent = 'El nombre debe tener entre 2 y 80 caracteres.';
+        err.classList.add('show'); return;
+      }
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'\-]+$/.test(nombre)) {
+        err.textContent = 'El nombre solo puede contener letras y espacios.';
+        err.classList.add('show'); return;
+      }
+      if (!/^\d{6,12}$/.test(cedula)) {
+        err.textContent = 'La cédula debe contener entre 6 y 12 dígitos numéricos.';
+        err.classList.add('show'); return;
+      }
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Generando...';
